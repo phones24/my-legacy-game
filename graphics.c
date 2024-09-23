@@ -1,0 +1,349 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dos.h>
+#include <mem.h>
+#include <malloc.h>
+#include <conio.h>
+
+#include "font.h"
+#include "graphics_def.h"
+#include "graphics.h"
+
+char *video_mem = (char *)0xA0000;
+char *double_buffer;
+
+static unsigned char page = 0;
+static unsigned int video_mem_offset = 0;
+
+void init_double_buffer() {
+  double_buffer = (char *)malloc(SCREEN_SIZE);
+
+  if (double_buffer == NULL) {
+    printf("Memory allocation failed for double buffer\n");
+    exit(1);
+  }
+
+  memset(double_buffer, 0, SCREEN_SIZE);
+}
+
+void free_double_buffer() {
+  free(double_buffer);
+}
+
+void set_mode_03h() {
+  union REGS regs;
+
+  regs.h.ah = 0x00;
+  regs.h.al = 0x03;
+
+  int386(0x10, &regs, &regs);
+}
+
+void set_mode_13h() {
+  union REGS regs;
+
+  regs.h.ah = 0x00;
+  regs.h.al = 0x13;
+
+  int386(0x10, &regs, &regs);
+}
+
+void set_mode_13h_modex() {
+  union REGS regs;
+
+  regs.h.ah = 0x00;
+  regs.h.al = 0x13;
+
+  int386(0x10, &regs, &regs);
+
+  outp(0x3c4, 0x04);
+  outp(0x3c5, 0x06);
+
+  outp(0x3d4, 0x17);
+  outp(0x3d5, 0xE3);
+
+  outp(0x3d4, 0x14);
+  outp(0x3d5, 0x00);
+
+  memset(video_mem, 0, 16 * 1024);
+}
+
+void wait_for_vsync() {
+  while ((inp(0x03DA) & 0x08));
+  while (!(inp(0x03DA) & 0x08));
+}
+
+void show_double_buffer() {
+  // wait_for_vsync();
+
+  _asm {
+    push edi
+    push esi
+    push edx
+    mov  edi, video_mem
+    mov  esi, double_buffer
+    mov  ecx, SCREEN_SIZE_DWORDS
+    rep  movsd
+    pop  edx
+    pop  esi
+    pop  edi
+  }
+}
+
+void put_pixel(int x, int y, char color) {
+  double_buffer[((y << 8) + (y << 6)) + x] = color;
+}
+
+// void put_pixel_modex(int x, int y, char color) {
+//     unsigned int offset = video_mem_offset + (y * 80) + (x >> 2);
+
+//     _asm {
+//         // Set the plane select register (0x3C4, index 0x02)
+//         mov  dx, 0x3C4
+//         mov  al, 0x02
+//         out  dx, al
+
+//         // Set the plane using 1 << (x & 0x3)
+//         mov  dx, 0x3C5
+//         mov  eax, x
+//         and  eax, 0x03          // Mask the lower 2 bits of x
+//         mov  al, 1
+//         shl  al, cl             // AL = 1 << (x & 0x03)
+//         out  dx, al
+
+//         // Write the color to the video memory
+//         mov  edi, offset        // Load the offset to EDI (destination)
+//         mov  al, color          // Load the color into AL
+//         mov  es:[edi], al       // Write the color to video memory
+//     }
+// }
+
+void put_pixel_modex(int x, int y, char color) {
+  outp(0x3C4, 0x02);
+  outp(0x3C5, 1 << (x & 0x3));
+
+  video_mem[video_mem_offset + (y * 80) + (x >> 2)] = color;
+}
+
+void set_visible_page()
+{
+  unsigned int start_address = page * SCREEN_SIZE_DIV_4;
+
+  outp(0x3d4, 0x0C);
+  outp(0x3d5, (start_address & 0xFF00) >> 8);
+  outp(0x3d4, 0x0D);
+  outp(0x3d5, start_address & 0x00FF);
+
+  page = page == 0 ? 1 : 0;
+}
+
+void set_active_page()
+{
+  video_mem_offset = page * SCREEN_SIZE_DIV_4;
+}
+
+void clear_modex() {
+  outp(0x3C4, 0x02);
+  outp(0x3C5, 0x0F);
+
+  memset(video_mem + video_mem_offset, 0, SCREEN_SIZE_DIV_4);
+
+  // char * video_mem_with_offset = video_mem + video_mem_offset;
+  // _asm {
+  //     push edi
+  //     push edx
+  //     mov  edi, video_mem_with_offset
+  //     mov  eax, 0
+  //     mov  ecx, SCREEN_SIZE / 8
+  //     rep  stosd
+  //     pop  edx
+  //     pop  edi
+  // }
+
+  // _asm {
+  //   push es
+  //   push di
+  //   push cx
+
+  //   mov eax, color
+  //   les di, video_mem_with_offset
+  //   mov cx, SCREEN_SIZE / 8
+  //   cld
+  //   rep stosd
+
+  //   pop cx
+  //   pop di
+  //   pop es
+  // }
+}
+
+void clear_double_buffer() {
+  // memset(double_buffer, 0, SCREEN_SIZE);
+
+  _asm {
+      push edi
+      push edx
+      mov  edi, double_buffer
+      mov  eax, 0
+      mov  ecx, SCREEN_SIZE_DWORDS
+      rep  stosd
+      pop  edx
+      pop  edi
+  }
+}
+
+void draw_line(int x0, int y0, int x1, int y1, char color) {
+  int dx = abs(x1 - x0);
+  int dy = abs(y1 - y0);
+  int sx = (x0 < x1) ? 1 : -1;
+  int sy = (y0 < y1) ? 1 : -1;
+  int err = dx - dy;
+
+  while (1) {
+    // put_pixel(x0, y0, color);
+    put_pixel_modex(x0, y0, color);
+
+    if (x0 == x1 && y0 == y1) {
+      break;
+    }
+
+    int e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      x0 += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      y0 += sy;
+    }
+  }
+}
+
+void draw_char(int x, int y, char ch, char color) {
+  int font_index = (char)ch * FONT_HEIGHT;
+  for (unsigned int row = 0; row < FONT_HEIGHT; row++) {
+    char line = font[font_index + row];
+    for (unsigned int col = 0; col < FONT_WIDTH; col++) {
+      if (line & (1 << col)) {
+        // put_pixel(x + col, y + row, color);
+        put_pixel_modex(x + col, y + row, color);
+      }
+    }
+  }
+}
+
+void draw_string(int x, int y, const char *str, char color) {
+  while (*str) {
+    if (x + FONT_WIDTH >= SCREEN_WIDTH) {
+      x = 0;
+      y += FONT_HEIGHT;
+
+      if (y + FONT_HEIGHT > SCREEN_HEIGHT) {
+        return;
+      }
+    }
+    draw_char(x, y, *str, color);
+    x += FONT_WIDTH;
+    str++;
+  }
+}
+
+void draw_image(char * data, int width, int height, int pos_x, int pos_y) {
+  if(pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
+    return;
+  }
+
+  if(pos_x + width < 0 || pos_x >= SCREEN_WIDTH) {
+    return;
+  }
+
+  char color;
+  int final_x;
+  int final_y = pos_y - 1;
+
+  for (int y = 0; y < height; y++) {
+    final_y++;
+
+    if(final_y < 0 || final_y >= SCREEN_HEIGHT) {
+      continue;
+    }
+
+    char * line = &data[y * width];
+    for (int x = 0; x < width; x++) {
+      color = *line++;
+      final_x = pos_x + x;
+
+      if (color != TRANSPARENT_COLOR && final_x >= 0 && final_x < SCREEN_WIDTH) {
+        put_pixel_modex(final_x, final_y, color);
+      }
+    }
+  }
+}
+
+void draw_image_rle(const char * data, unsigned long data_size, int width, int height, int pos_x, int pos_y) {
+  if(pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
+    return;
+  }
+
+  if(pos_x + width < 0 || pos_x >= SCREEN_WIDTH) {
+    return;
+  }
+
+  int draw_x = pos_x, draw_y = pos_y;
+  long i = 0;
+
+  while (i < data_size && draw_y <= SCREEN_HEIGHT) {
+    char value = data[i++];
+    int count = 1;
+
+    if ((value & 0xC0) == 0xC0) {
+      count = value & 0x3F;
+      value = data[i++];
+    }
+
+    while (count > 0 && draw_y < SCREEN_HEIGHT) {
+      if (draw_x < 0) {
+        int skip = (count < -draw_x) ? count : -draw_x;
+        draw_x += skip;
+        count -= skip;
+        continue;
+      }
+
+      if (draw_x >= SCREEN_WIDTH) {
+        draw_x = pos_x;
+        draw_y++;
+        continue;
+      }
+
+      int remaining_in_row = SCREEN_WIDTH - draw_x;
+      int to_draw = (count < remaining_in_row) ? count : remaining_in_row;
+
+      if (draw_x + to_draw >= SCREEN_WIDTH) {
+          to_draw = SCREEN_WIDTH - draw_x;
+      }
+
+      if (value != TRANSPARENT_COLOR) {
+          char *dest = double_buffer + ((draw_y << 8) + (draw_y << 6)) + draw_x;
+          if (to_draw == 1) {
+              *dest = value;
+          } else {
+              memset(dest, value, to_draw);
+          }
+      }
+
+      count -= to_draw;
+      draw_x += to_draw;
+
+      if (draw_x >= pos_x + width) {
+          draw_x = pos_x;
+          draw_y++;
+      }
+
+      if (draw_y >= pos_y + height) {
+        return;
+      }
+    }
+  }
+}
+
+

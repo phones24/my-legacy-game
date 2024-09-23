@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "math.h": "c",
+        "stdio.h": "c",
+        "sprite.h": "c",
+        "font.h": "c",
+        "time.h": "c",
+        "keyboard.h": "c",
+        "graphics.h": "c",
+        "graphics_def.h": "c",
+        "res.h": "c",
+        "stdlib.h": "c",
+        "sprite_sheet.h": "c",
+        "palette.h": "c",
+        "malloc.h": "c"
+    }
+}
