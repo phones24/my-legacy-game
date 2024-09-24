@@ -1,10 +1,12 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
+#define SPRITES_NUM 20
+
 typedef struct {
-  unsigned int width[20];
-  unsigned int height[20];
-  char *data[20];
+  unsigned int width[SPRITES_NUM];
+  unsigned int height[SPRITES_NUM];
+  char *data[SPRITES_NUM];
 } SPRITE3;
 
 SPRITE3 load_sprite(const char *name)
@@ -39,6 +41,10 @@ SPRITE3 load_sprite(const char *name)
     }
   }
 
+  for (int i = sprite_sheet.count; i < SPRITES_NUM; i++) {
+    sprite.data[i] = NULL;
+  }
+
   free(image.data);
 
   return sprite;
@@ -46,7 +52,7 @@ SPRITE3 load_sprite(const char *name)
 
 void clear_sprite(SPRITE3 sprite)
 {
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < SPRITES_NUM; i++) {
     if(sprite.data[i] != NULL) {
       free(sprite.data[i]);
     }
@@ -54,6 +60,10 @@ void clear_sprite(SPRITE3 sprite)
 }
 
 void draw_sprite(SPRITE3 sprite, int num, int pos_x, int pos_y) {
+  if (sprite.data[num] == NULL) {
+    return;
+  }
+
   draw_image(sprite.data[num], sprite.width[num], sprite.height[num], pos_x, pos_y);
 }
 

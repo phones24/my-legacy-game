@@ -12,6 +12,8 @@
         "stdlib.h": "c",
         "sprite_sheet.h": "c",
         "palette.h": "c",
-        "malloc.h": "c"
+        "malloc.h": "c",
+        "timer.h": "c",
+        "sprites.h": "c"
     }
 }

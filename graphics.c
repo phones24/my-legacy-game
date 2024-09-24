@@ -74,8 +74,6 @@ void wait_for_vsync() {
 }
 
 void show_double_buffer() {
-  // wait_for_vsync();
-
   _asm {
     push edi
     push esi
@@ -94,35 +92,37 @@ void put_pixel(int x, int y, char color) {
   double_buffer[((y << 8) + (y << 6)) + x] = color;
 }
 
-// void put_pixel_modex(int x, int y, char color) {
-//     unsigned int offset = video_mem_offset + (y * 80) + (x >> 2);
-
-//     _asm {
-//         // Set the plane select register (0x3C4, index 0x02)
-//         mov  dx, 0x3C4
-//         mov  al, 0x02
-//         out  dx, al
-
-//         // Set the plane using 1 << (x & 0x3)
-//         mov  dx, 0x3C5
-//         mov  eax, x
-//         and  eax, 0x03          // Mask the lower 2 bits of x
-//         mov  al, 1
-//         shl  al, cl             // AL = 1 << (x & 0x03)
-//         out  dx, al
-
-//         // Write the color to the video memory
-//         mov  edi, offset        // Load the offset to EDI (destination)
-//         mov  al, color          // Load the color into AL
-//         mov  es:[edi], al       // Write the color to video memory
-//     }
-// }
-
 void put_pixel_modex(int x, int y, char color) {
   outp(0x3C4, 0x02);
   outp(0x3C5, 1 << (x & 0x3));
 
-  video_mem[video_mem_offset + (y * 80) + (x >> 2)] = color;
+  _asm {
+      push eax
+      push ebx
+      push ecx
+      push edx
+      push edi
+
+      mov eax, y
+      mov edx, 80
+      mul edx
+      mov edx, x
+      shr edx, 2
+      add eax, edx
+
+      add eax, video_mem_offset
+
+      mov edi, video_mem
+      mov edx, eax
+      mov al, color
+      mov [edi + edx], al
+
+      pop edi
+      pop edx
+      pop ecx
+      pop ebx
+      pop eax
+  }
 }
 
 void set_visible_page()
@@ -146,49 +146,29 @@ void clear_modex() {
   outp(0x3C4, 0x02);
   outp(0x3C5, 0x0F);
 
-  memset(video_mem + video_mem_offset, 0, SCREEN_SIZE_DIV_4);
-
-  // char * video_mem_with_offset = video_mem + video_mem_offset;
-  // _asm {
-  //     push edi
-  //     push edx
-  //     mov  edi, video_mem_with_offset
-  //     mov  eax, 0
-  //     mov  ecx, SCREEN_SIZE / 8
-  //     rep  stosd
-  //     pop  edx
-  //     pop  edi
-  // }
-
-  // _asm {
-  //   push es
-  //   push di
-  //   push cx
-
-  //   mov eax, color
-  //   les di, video_mem_with_offset
-  //   mov cx, SCREEN_SIZE / 8
-  //   cld
-  //   rep stosd
-
-  //   pop cx
-  //   pop di
-  //   pop es
-  // }
+  _asm {
+    push edi
+    push edx
+    mov  edi, video_mem
+    add  edi, video_mem_offset
+    xor  eax, eax
+    mov  ecx, SCREEN_SIZE_DIV_4 / 4
+    rep  stosd
+    pop  edx
+    pop  edi
+  }
 }
 
 void clear_double_buffer() {
-  // memset(double_buffer, 0, SCREEN_SIZE);
-
   _asm {
-      push edi
-      push edx
-      mov  edi, double_buffer
-      mov  eax, 0
-      mov  ecx, SCREEN_SIZE_DWORDS
-      rep  stosd
-      pop  edx
-      pop  edi
+    push edi
+    push edx
+    mov  edi, double_buffer
+    mov  eax, 0
+    mov  ecx, SCREEN_SIZE_DWORDS
+    rep  stosd
+    pop  edx
+    pop  edi
   }
 }
 

@@ -1,10 +1,9 @@
 #ifndef EVENT_PLANETS_H
 #define EVENT_PLANETS_H
 
-SPRITE3 planets_sprite;
+#include "sprites.h"
 
 void init_event__planet(LEVEL_EVENT *event) {
-  planets_sprite = load_sprite("planets");
 }
 
 void start_event__planet(LEVEL_EVENT *event) {
@@ -18,15 +17,17 @@ void draw_event__planet(LEVEL_EVENT *event) {
 
   if (cur_event->y > SCREEN_HEIGHT) {
     event->status = EVENT_STATUS_FINISHED;
+    return;
   }
+
+  int speed = (cur_event->speed * delta_frame_time) / TICKS_PER_SECOND;
 
   draw_sprite(planets_sprite, cur_event->sprite_num, cur_event->x, cur_event->y);
 
-  cur_event->y += cur_event->speed;
+  cur_event->y += speed;
 }
 
 void clear_event__planet(LEVEL_EVENT *event) {
-  clear_sprite(planets_sprite);
 }
 
 #endif

@@ -20,9 +20,9 @@
 #include "stars.h"
 #include "ship.h"
 
-unsigned long begin_frame_ms, delta_frame_ms;
+volatile unsigned long begin_frame_ms, delta_frame_ms;
+volatile unsigned int frames_count = 0;
 char fps[10];
-volatile int frames_count = 0;
 
 void draw_fps()
 {
@@ -58,6 +58,10 @@ void draw_debug_info() {
   draw_string(2, 0, str, 3);
   sprintf(str, "clock_ms: %lu", game_clock_ms);
   draw_string(2, 8, str, 3);
+  sprintf(str, "delta_frame_time: %lu", delta_frame_time);
+  draw_string(2, 16, str, 3);
+  // sprintf(str, "a: %d", game_clock_ms % 1000);
+  // draw_string(2, 24, str, 3);
 
 }
 
@@ -101,6 +105,7 @@ int main()
   atexit(exit_handler);
 
   init_double_buffer();
+  load_sprites();
   init_stars();
   init_ship();
   init_projectile();
@@ -112,8 +117,8 @@ int main()
   init_palette();
 
   // int y = 0
-  while (1)
-  {
+  while (1) {
+    begin_frame_time = game_clock;
     // wait_for_vsync();
 
     set_active_page();
@@ -135,6 +140,7 @@ int main()
     //     put_pixel(i, y, c);
     //   }
 
+    // draw_line(130, 100, 140, 100, 100);
     //   c++;
     // }
     draw_stars();
@@ -147,13 +153,13 @@ int main()
 
     // show_double_buffer();
     set_visible_page();
-
     wait_for_vsync();
 
     if(keys.escape) {
       break;
     }
 
+    delta_frame_time = game_clock - begin_frame_time;
   }
 
   getch();
@@ -165,8 +171,7 @@ int main()
   free(image2.data);
 
   clear_stars();
-  clear_ship();
-  clear_projectile();
+  free_sprites();
   clear_level_data(level_data);
   clear_palette();
 
