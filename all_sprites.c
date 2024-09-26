@@ -1,7 +1,4 @@
-#ifndef SPRITES_LOADER_H
-#define SPRITES_LOADER_H
-
-#include "sprite.h"
+#include "all_sprites.h"
 
 SPRITE3 ship_sprite;
 SPRITE3 ship_prj_sprite;
@@ -21,6 +18,3 @@ void free_sprites() {
   clear_sprite(planets_sprite);
   clear_sprite(nebula_sprite);
 }
-
-
-#endif

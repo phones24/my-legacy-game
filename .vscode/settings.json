@@ -14,6 +14,8 @@
         "palette.h": "c",
         "malloc.h": "c",
         "timer.h": "c",
-        "sprites.h": "c"
+        "sprites.h": "c",
+        "event_nebula.h": "c",
+        "level_events_def.h": "c"
     }
 }

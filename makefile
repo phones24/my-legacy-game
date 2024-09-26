@@ -5,7 +5,7 @@ WCL = $(WATCOM_BIN)/wcl386
 all : game.exe
 
 game.exe : game.c
-	$(WCL) -i$(WATCOM)/h -d1 -fp3 -za99 -zp4 -5r -mf -ox -lm -l=dos32a -bt=dos game.c graphics.c font.c
+	$(WCL) -i$(WATCOM)/h -d1 -fp3 -za99 -zp4 -5r -mf -ox -lm -l=dos32a -bt=dos game.c sprite.c all_sprites.c timer.c res.c level.c graphics.c font.c
 
 clean :
-	rm -f game.o graphics.o font.o game.exe
+	rm -f sprite.o all_sprites.o timer.o res.o game.o graphics.o font.o level.o game.exe

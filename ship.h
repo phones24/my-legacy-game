@@ -3,7 +3,7 @@
 
 #define PROJECTILES_NUM 20
 
-#include "sprites.h"
+#include "all_sprites.h"
 
 typedef struct {
   int x;

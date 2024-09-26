@@ -1,7 +1,9 @@
 #ifndef EVENT_NEBULA_H
 #define EVENT_NEBULA_H
 
-#include "sprites.h"
+#include "graphics_def.h"
+#include "level_events_def.h"
+#include "level.h"
 
 void init_event__nebula(LEVEL_EVENT *event) {
 }
@@ -13,7 +15,7 @@ void draw_event__nebula(LEVEL_EVENT *event) {
   LEVEL_EVENT__NEBULA *cur_evevnt = (LEVEL_EVENT__NEBULA *)event->event_data;
 
   if (cur_evevnt->y > SCREEN_HEIGHT) {
-    event->status = EVENT_STATUS_FINISHED;
+    stop_event(event);
     return;
   }
 

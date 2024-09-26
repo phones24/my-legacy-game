@@ -205,7 +205,6 @@ void draw_char(int x, int y, char ch, char color) {
     char line = font[font_index + row];
     for (unsigned int col = 0; col < FONT_WIDTH; col++) {
       if (line & (1 << col)) {
-        // put_pixel(x + col, y + row, color);
         put_pixel_modex(x + col, y + row, color);
       }
     }
@@ -299,16 +298,13 @@ void draw_image_rle(const char * data, unsigned long data_size, int width, int h
       int to_draw = (count < remaining_in_row) ? count : remaining_in_row;
 
       if (draw_x + to_draw >= SCREEN_WIDTH) {
-          to_draw = SCREEN_WIDTH - draw_x;
+        to_draw = SCREEN_WIDTH - draw_x;
       }
 
       if (value != TRANSPARENT_COLOR) {
-          char *dest = double_buffer + ((draw_y << 8) + (draw_y << 6)) + draw_x;
-          if (to_draw == 1) {
-              *dest = value;
-          } else {
-              memset(dest, value, to_draw);
-          }
+        for (int j = 0; j < to_draw; j++) {
+          put_pixel_modex(draw_x + j, draw_y, value);
+        }
       }
 
       count -= to_draw;

@@ -1,47 +1,72 @@
 #ifndef STARS_H
 #define STARS_H
 
-#define STARS_COUNT 30
-#define PLANETS_COUNT 3
+#define STARS_COUNT 60
 
-char star_colors[] = {2, 8, 10, 11, 12, 13, 18, 19};
+char star_colors[] = {2, 8, 4, 3, 10, 12, 13, 18, 19};
+char star_anim[] = {1, 2, 8, 4, 3, 3, 4, 8, 2, 1};
 
 typedef struct {
   int x;
-  int y;
+  float y;
   int speed;
   char color;
   char size;
+  char is_anim;
+  char anim_frame;
 } STAR;
 
 STAR stars[STARS_COUNT];
+int anim_speed = 2000 / sizeof(star_anim);
 
-void reset_star(int i, int zero_y) {
-  stars[i].x = 5 + (rand() % (SCREEN_WIDTH - 5));
-  stars[i].y = zero_y == 1 ? 0 : (rand() % 200);
-  stars[i].speed = 5 + rand() % 15;
-  stars[i].color = rand() % sizeof(star_colors);
+void reset_star(STAR *star, int zero_y) {
+  star->x = 5 + (rand() % (SCREEN_WIDTH - 5));
+  star->y = zero_y == 1 ? 0 : (rand() % 200);
+  star->speed = 1 + rand() % 8;
+  star->color = star_colors[rand() % sizeof(star_colors)];
+  star->is_anim = rand() % 4 == 0 ? 1 : 0;
+  star->anim_frame = 0;
 }
 
 void init_stars() {
   for(int i = 0; i < STARS_COUNT; i++) {
-    reset_star(i, 0);
+    reset_star(&stars[i], 0);
   }
 }
 
 void draw_star(STAR *star) {
-  put_pixel_modex(star->x, star->y, star->color);
+  if(!star->is_anim) {
+    put_pixel_modex(star->x, star->y, star->color);
+
+    return;
+  }
+
+  if(game_clock_ms % anim_speed == 0) {
+    star->anim_frame++;
+  }
+
+  if (star->anim_frame >= sizeof(star_anim)) {
+    star->anim_frame = 0;
+  }
+
+  put_pixel_modex(star->x, star->y, star_anim[star->anim_frame]);
 }
 
 void draw_stars() {
   for(int i = 0; i < STARS_COUNT; i++) {
-    int speed = (stars[i].speed * delta_frame_time) / TICKS_PER_SECOND;
+    float speed = (stars[i].speed * (float)delta_frame_time) / (float)TICKS_PER_SECOND;
 
-    if(stars[i].y >= SCREEN_HEIGHT) {
-      reset_star(i, 1);
+    if (speed < 0) {
+      speed = 0.5;
     }
 
-    draw_star(&stars[i]);
+    if(stars[i].y >= SCREEN_HEIGHT) {
+      reset_star(&stars[i], 1);
+    }
+
+    if (stars[i].y >= 0) {
+      draw_star(&stars[i]);
+    }
 
     stars[i].y += speed;
   }

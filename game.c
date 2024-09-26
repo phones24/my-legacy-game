@@ -9,13 +9,13 @@
 
 #include "timer.h"
 #include "graphics_def.h"
-#include "font.h"
-#include "sprite_sheet.h"
+// #include "font.h"
+// #include "sprite_sheet.h"
 #include "keyboard.h"
 #include "graphics.h"
 #include "res.h"
 #include "palette.h"
-#include "sprite.h"
+#include "all_sprites.h"
 #include "level.h"
 #include "stars.h"
 #include "ship.h"
@@ -83,8 +83,8 @@ int main()
 
   srand(time(NULL));
 
-  // IMAGE_RLE image = read_pcx("res\\ship3.pcx");
-  IMAGE image2 = read_bmp("res\\ship3.bmp");
+  // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
+  IMAGE image2 = read_bmp("res\\enemy1.bmp");
   LEVEL_DATA level_data = load_level_data("res\\level.txt");
 
   // printf("event count: %u\n", level_data.count);
@@ -104,16 +104,13 @@ int main()
 
   atexit(exit_handler);
 
-  init_double_buffer();
   load_sprites();
   init_stars();
   init_ship();
   init_projectile();
   init_level(level_data);
 
-  // set_mode_13h();
   set_mode_13h_modex();
-
   init_palette();
 
   // int y = 0
@@ -123,10 +120,9 @@ int main()
 
     set_active_page();
     clear_modex();
-    // clear_double_buffer();
 
     // draw_image_rle(image.data, image.data_size, image.width, image.height, 20, 100);
-    // draw_image(image2.data, image2.width, image2.height, 20, 166);
+    draw_image(image2.data, image2.width, image2.height, 20, 20);
     // for(int i = 0; i <= 200; i+=10) {
     // draw_line(0, i, 200, i, 200);
     // }
@@ -151,7 +147,6 @@ int main()
 
     draw_fps();
 
-    // show_double_buffer();
     set_visible_page();
     wait_for_vsync();
 
@@ -166,7 +161,6 @@ int main()
 
   set_mode_03h();
 
-  free_double_buffer();
   // free(image.data);
   free(image2.data);
 
