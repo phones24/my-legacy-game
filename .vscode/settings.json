@@ -16,6 +16,8 @@
         "timer.h": "c",
         "sprites.h": "c",
         "event_nebula.h": "c",
-        "level_events_def.h": "c"
+        "level_events_def.h": "c",
+        "*.old": "c",
+        "event_enemy1.h": "c"
     }
 }

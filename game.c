@@ -9,8 +9,6 @@
 
 #include "timer.h"
 #include "graphics_def.h"
-// #include "font.h"
-// #include "sprite_sheet.h"
 #include "keyboard.h"
 #include "graphics.h"
 #include "res.h"
@@ -84,8 +82,8 @@ int main()
   srand(time(NULL));
 
   // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
-  IMAGE image2 = read_bmp("res\\enemy1.bmp");
-  LEVEL_DATA level_data = load_level_data("res\\level.txt");
+  // IMAGE image2 = read_bmp("res\\enemy1.bmp");
+  // LEVEL_DATA level_data = load_level_data("res\\level.txt");
 
   // printf("event count: %u\n", level_data.count);
 
@@ -108,7 +106,7 @@ int main()
   init_stars();
   init_ship();
   init_projectile();
-  init_level(level_data);
+  init_level();
 
   set_mode_13h_modex();
   init_palette();
@@ -122,7 +120,7 @@ int main()
     clear_modex();
 
     // draw_image_rle(image.data, image.data_size, image.width, image.height, 20, 100);
-    draw_image(image2.data, image2.width, image2.height, 20, 20);
+    // draw_image(image2.data, image2.width, image2.height, 20, 20);
     // for(int i = 0; i <= 200; i+=10) {
     // draw_line(0, i, 200, i, 200);
     // }
@@ -140,7 +138,7 @@ int main()
     //   c++;
     // }
     draw_stars();
-    draw_level(level_data);
+    draw_level();
     draw_ship();
     draw_ship_projectile();
     // draw_debug_info();
@@ -162,11 +160,11 @@ int main()
   set_mode_03h();
 
   // free(image.data);
-  free(image2.data);
+  // free(image2.data);
 
   clear_stars();
   free_sprites();
-  clear_level_data(level_data);
+  clear_level_data();
   clear_palette();
 
   return 0;

@@ -5,6 +5,12 @@
 #include "level_events_def.h"
 #include "level.h"
 
+typedef struct {
+  int x;
+  float y;
+  int sprite_num;
+} LEVEL_EVENT__NEBULA;
+
 void init_event__nebula(LEVEL_EVENT *event) {
 }
 

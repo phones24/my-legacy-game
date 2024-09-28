@@ -7,31 +7,59 @@
 #include "level_events_def.h"
 #include "all_sprites.h"
 
-void init_event__planet(LEVEL_EVENT *event) {
-}
+typedef struct {
+  LEVEL_EVENT *level_event;
+  int x;
+  float y;
+  int sprite_num;
+  int speed;
+} PLANET;
+
+PLANET *planets[20];
+int planets_count = 0;
 
 void start_event__planet(LEVEL_EVENT *event) {
-  LEVEL_EVENT__PLANET *cur_evevnt = (LEVEL_EVENT__PLANET *)event->event_data;
+  PLANET *planet = (PLANET *)malloc(sizeof(PLANET));
 
-  cur_evevnt->y = 0.0f - planets_sprite.height[cur_evevnt->sprite_num];
+  planet->level_event = event;
+  planet->sprite_num = event->event_data[0];
+  planet->x = event->event_data[1];
+  planet->speed = event->event_data[2];
+  planet->y = 0.0f - planets_sprite.height[planet->sprite_num];
+
+  planets[planets_count++] = planet;
 }
 
-void draw_event__planet(LEVEL_EVENT *event) {
-  LEVEL_EVENT__PLANET *cur_event = (LEVEL_EVENT__PLANET *)event->event_data;
-
-  if (cur_event->y > SCREEN_HEIGHT) {
-    stop_event(event);
-    return;
+void draw_event__planet() {
+  for(int i = 0; i < planets_count; i++) {
+    if (planets[i]->y > SCREEN_HEIGHT) {
+      stop_event(planets[i]->level_event);
+      free(planets[i]);
+      planets[i] = planets[planets_count - 1];
+      planets_count--;
+      continue;
+    }
   }
 
-  float speed = (float)(cur_event->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
+  for(int i = 0; i < planets_count; i++) {
+    PLANET *planet = planets[i];
 
-  draw_sprite(planets_sprite, cur_event->sprite_num, cur_event->x, cur_event->y);
+    float speed = (float)(planet->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
 
-  cur_event->y += speed;
+    draw_sprite(planets_sprite, planet->sprite_num, planet->x, planet->y);
+
+    planet->y += speed;
+  }
+
+  // char str[100];
+  // sprintf(str, "p: %i", planets_count);
+  // draw_string(2, 0, str, 3);
 }
 
-void clear_event__planet(LEVEL_EVENT *event) {
+void clear_event__planet() {
+  for(int i = 0; i < planets_count; i++) {
+    free(planets[i]);
+  }
 }
 
 #endif

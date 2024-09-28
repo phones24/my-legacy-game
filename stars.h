@@ -22,7 +22,7 @@ int anim_speed = 2000 / sizeof(star_anim);
 void reset_star(STAR *star, int zero_y) {
   star->x = 5 + (rand() % (SCREEN_WIDTH - 5));
   star->y = zero_y == 1 ? 0 : (rand() % 200);
-  star->speed = 1 + rand() % 8;
+  star->speed = 1 + rand() % 4;
   star->color = star_colors[rand() % sizeof(star_colors)];
   star->is_anim = rand() % 4 == 0 ? 1 : 0;
   star->anim_frame = 0;
