@@ -28,7 +28,7 @@ SPRITE3 load_sprite(const char *name)
     sprite.data[num] = malloc(sprite.width[num] * sprite.height[num]);
 
     if(sprite.data[num] == NULL) {
-      printf("Error: Could not allocate memory for sprite data: %s, size: %u\n", txt_filename, sprite.width[num] * sprite.height[num]);
+      printf("Error: Could not allocate memory for sprite data: %s, size: %i\n", txt_filename, sprite.width[num] * sprite.height[num]);
       exit(1);
     }
 
@@ -38,7 +38,6 @@ SPRITE3 load_sprite(const char *name)
         sprite.data[num][index++] = image.data[x + y * image.width];
       }
     }
-
   }
 
   sprite.max_sprites = sprite_sheet.count;

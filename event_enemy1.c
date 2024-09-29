@@ -12,7 +12,7 @@
 
 struct {
   int x;
-  int y;
+  float y;
   int width;
   int height;
   int sprite_num;
@@ -65,7 +65,7 @@ void start_event__enemy1(LEVEL_EVENT *event) {
 
 void draw_explosions() {
   for(int i = 0; i < explosions_count; i++) {
-    if (explosions[i].sprite_num >= enemy1_expl_sprite.max_sprites) {
+    if (explosions[i].sprite_num >= enemy1_expl_sprite.max_sprites || explosions[i].y > SCREEN_HEIGHT) {
       explosions[i] = explosions[explosions_count - 1];
       explosions_count--;
       continue;
@@ -77,6 +77,8 @@ void draw_explosions() {
       explosions[i].sprite_num++;
       explosions[i].last_frame_clock = game_clock_ms;
     }
+
+    explosions[i].y += 0.5;
   }
 }
 
@@ -135,5 +137,6 @@ void hit(void *object) {
   ENEMY1 *enemy = object;
 
   enemy->energy--;
+  enemy->base.y -= 2;
 }
 

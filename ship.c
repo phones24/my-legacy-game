@@ -8,6 +8,8 @@
 #include "ship.h"
 
 #define PROJECTILES_NUM 20
+#define SHIP_SPEED 20
+#define PROJECTILE_SPEED 20
 
 typedef struct {
   int x;
@@ -29,10 +31,9 @@ PROJECTILE projectile[PROJECTILES_NUM];
 int x_movement = 0;
 int last_x_direction = 0;
 int projectile_x_offset = 0;
-int projectile_speed = 20;
 int projectile_width = 0;
 int projectile_height = 0;
-int ship_speed = 20;
+int projectile_sprite_num = 0;
 
 void init_ship() {
   ship.x = 140;
@@ -52,14 +53,14 @@ void init_projectile() {
 
   projectile_width = ship_prj_sprite.width[0];
   projectile_height = ship_prj_sprite.height[0];
-  projectile_x_offset = ship_sprite.width[ship.sprite_num] / 2 - projectile_width / 2 - 1;
+  projectile_x_offset = (ship_sprite.width[ship.sprite_num] - projectile_width) / 2;
 }
 
 void shot_projectile() {
   static unsigned long last_shot_clock = 0;
 
   if (keys.space) {
-    if (game_clock_ms - last_shot_clock < 100) {
+    if (game_clock_ms - last_shot_clock < 150) {
       return;
     }
 
@@ -98,15 +99,28 @@ int check_projectile_collision(int x, int y, int width, int height) {
   return 0;
 }
 
+int check_ship_collision(int x, int y, int width, int height) {
+  for(int i = 0; i < collision_objects_count; i++) {
+    COL_OBJECT *object = collision_objects[i];
+
+    if (x + width > object->base.x && x < object->base.x + object->base.width && y + height > object->base.y && y < object->base.y + object->base.height) {
+      object->base.hit(object);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 void draw_ship_projectile() {
   shot_projectile();
 
-  int speed = (projectile_speed * delta_frame_time) / TICKS_PER_SECOND;
-  static int projectile_sprite_num = 0;
+  int speed = (PROJECTILE_SPEED * delta_frame_time) / TICKS_PER_SECOND;
+  // static int projectile_sprite_num = 0;
 
-  if(game_clock_ms % 20 == 0) {
-    projectile_sprite_num = projectile_sprite_num == 0 ? 1 : 0;
-  }
+  // if(game_clock_ms % 20 == 0) {
+  //   projectile_sprite_num = projectile_sprite_num == 0 ? 1 : 0;
+  // }
 
   for (int i = 0; i < PROJECTILES_NUM; i++) {
     PROJECTILE *prj = &projectile[i];
@@ -152,7 +166,7 @@ void draw_ship() {
   int y_speed_mult = keys.up ? -1 : 1;
 
   if (keys.right || keys.left || keys.up || keys.down) {
-    int speed = (ship_speed * delta_frame_time) / TICKS_PER_SECOND;
+    int speed = (SHIP_SPEED * delta_frame_time) / TICKS_PER_SECOND;
 
     if (ship.movement_clock > 0) {
       unsigned long delta = game_clock_ms - ship.movement_clock;

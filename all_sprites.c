@@ -9,7 +9,7 @@ SPRITE3 enemy1_expl_sprite;
 
 void load_sprites() {
   ship_sprite = load_sprite("ship3");
-  ship_prj_sprite = load_sprite("ship_prj");
+  ship_prj_sprite = load_sprite("shipprj2");
   planets_sprite = load_sprite("planets");
   nebula_sprite = load_sprite("nebula");
   enemy1_sprite = load_sprite("enemy1");
