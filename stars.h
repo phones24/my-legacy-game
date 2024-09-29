@@ -1,5 +1,4 @@
-#ifndef STARS_H
-#define STARS_H
+#pragma once
 
 #define STARS_COUNT 60
 
@@ -76,4 +75,3 @@ void clear_stars() {
 }
 
 
-#endif

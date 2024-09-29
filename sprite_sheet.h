@@ -1,5 +1,4 @@
-#ifndef SPRITE_SHEET_H
-#define SPRITE_SHEET_H
+#pragma once
 
 typedef struct {
   unsigned int x0;
@@ -9,10 +8,7 @@ typedef struct {
 } SPRITE_DEF;
 
 typedef struct {
-  unsigned int width;
-  unsigned int height;
   unsigned int count;
   SPRITE_DEF sprites_def[20];
 } SPRITE_SHEET;
 
-#endif

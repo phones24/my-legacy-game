@@ -1,5 +1,4 @@
-#ifndef FONT_DEF_H
-#define FONT_DEF_H
+#pragma once
 
 #define FONT_WIDTH  8
 #define FONT_HEIGHT 8
@@ -8,4 +7,3 @@
 
 extern unsigned char font[FONT_NUM_CHARACTERS * FONT_HEIGHT];
 
-#endif

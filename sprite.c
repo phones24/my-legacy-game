@@ -38,7 +38,10 @@ SPRITE3 load_sprite(const char *name)
         sprite.data[num][index++] = image.data[x + y * image.width];
       }
     }
+
   }
+
+  sprite.max_sprites = sprite_sheet.count;
 
   for (int i = sprite_sheet.count; i < SPRITES_NUM; i++) {
     sprite.data[i] = NULL;

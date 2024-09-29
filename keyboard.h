@@ -1,5 +1,4 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#pragma once
 
 typedef struct
 {
@@ -16,4 +15,3 @@ extern volatile KEYS keys;
 void init_keyboard();
 void restore_keyboard();
 
-#endif

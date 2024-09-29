@@ -1,5 +1,4 @@
-#ifndef GRAPHICS_DEF_H
-#define GRAPHICS_DEF_H
+#pragma once
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 200
@@ -21,6 +20,3 @@ typedef struct {
   char *data;
   long data_size;
 } IMAGE_RLE;
-
-
-#endif

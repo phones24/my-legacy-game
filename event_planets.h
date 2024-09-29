@@ -1,10 +1,9 @@
-#ifndef EVENT_PLANETS_H
-#define EVENT_PLANETS_H
+#pragma once
 
 #include "graphics_def.h"
 #include "timer.h"
 #include "level.h"
-#include "level_events_def.h"
+#include "level_events.h"
 #include "all_sprites.h"
 
 typedef struct {
@@ -61,5 +60,3 @@ void clear_event__planet() {
     free(planets[i]);
   }
 }
-
-#endif

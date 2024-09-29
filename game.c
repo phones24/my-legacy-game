@@ -82,7 +82,7 @@ int main()
   srand(time(NULL));
 
   // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
-  // IMAGE image2 = read_bmp("res\\enemy1.bmp");
+  // IMAGE image2 = read_bmp("res\\en1expl.bmp");
   // LEVEL_DATA level_data = load_level_data("res\\level.txt");
 
   // printf("event count: %u\n", level_data.count);
@@ -142,6 +142,9 @@ int main()
     draw_ship();
     draw_ship_projectile();
     // draw_debug_info();
+
+
+
 
     draw_fps();
 

@@ -18,6 +18,11 @@
         "event_nebula.h": "c",
         "level_events_def.h": "c",
         "*.old": "c",
-        "event_enemy1.h": "c"
+        "event_enemy1.h": "c",
+        "level.h": "c",
+        "all_sprites.h": "c",
+        "collision.h": "c",
+        "level_events.h": "c",
+        "set.h": "c"
     }
 }

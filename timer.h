@@ -1,5 +1,4 @@
-#ifndef TIMER_H
-#define TIMER_H
+#pragma once
 
 #define TICKS_PER_SECOND 10
 
@@ -10,5 +9,3 @@ extern unsigned long begin_frame_time, delta_frame_time;
 void schedule_task(unsigned long delay, void (*func)());
 void init_timer();
 void restore_timer();
-
-#endif

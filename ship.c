@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "all_sprites.h"
 #include "graphics_def.h"
+#include "collision.h"
 #include "timer.h"
 #include "sprite.h"
 #include "event_enemy1.h"
@@ -85,15 +86,11 @@ void shot_projectile() {
 }
 
 int check_projectile_collision(int x, int y, int width, int height) {
-  for(int i = 0; i < enemies_count; i++) {
-    ENEMY1 *enemy = enemies[i];
+  for(int i = 0; i < collision_objects_count; i++) {
+    COL_OBJECT *object = collision_objects[i];
 
-    if (enemy->energy <= 0) {
-      continue;
-    }
-
-    if (x + width > enemy->x && x < enemy->x + enemy->width && y + height > enemy->y && y < enemy->y + enemy->height) {
-      enemy->energy--;
+    if (x + width > object->base.x && x < object->base.x + object->base.width && y + height > object->base.y && y < object->base.y + object->base.height) {
+      object->base.hit(object);
       return 1;
     }
   }

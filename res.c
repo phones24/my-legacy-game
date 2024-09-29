@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "graphics_def.h"
 #include "sprite_sheet.h"
@@ -21,14 +22,14 @@ typedef struct {
 
 typedef struct {
   unsigned int biSize;
-  unsigned int biWidth;
-  unsigned int biHeight;
+  int biWidth;
+  int biHeight;
   unsigned short biPlanes;
   unsigned short biBitCount;
   unsigned int biCompression;
   unsigned int biSizeImage;
-  unsigned int biXPelsPerMeter;
-  unsigned int biYPelsPerMeter;
+  int biXPelsPerMeter;
+  int biYPelsPerMeter;
   unsigned int biClrUsed;
   unsigned int biClrImportant;
 } BMPIMAGEHEADER;
@@ -68,7 +69,7 @@ IMAGE read_bmp(const char *filename)
   FILE *file = fopen(filename, "rb");
   if (!file)
   {
-    fprintf(stderr, "Error opening BMP file %s\n", filename);
+    fprintf(stderr, "Error opening BMP file %s, err: %s\n", filename, strerror(errno));
     exit(1);
   }
 
@@ -79,15 +80,13 @@ IMAGE read_bmp(const char *filename)
   fread(&file_header, sizeof(BMPFILEHEADER), 1, file);
   fread(&image_header, sizeof(BMPIMAGEHEADER), 1, file);
 
-  if (file_header.bfType[0] != 'B' || file_header.bfType[1] != 'M')
-  {
+  if (file_header.bfType[0] != 'B' || file_header.bfType[1] != 'M') {
     fprintf(stderr, "Not a BMP file, bfType: %s\n", file_header.bfType);
     fclose(file);
     exit(1);
   }
 
-  if (image_header.biBitCount != 8)
-  {
+  if (image_header.biBitCount != 8) {
     fprintf(stderr, "Only 8-bit BMP files are supported, biBitCount: %x\n", image_header.biBitCount);
     fclose(file);
     exit(1);
@@ -96,17 +95,16 @@ IMAGE read_bmp(const char *filename)
   image.width = image_header.biWidth;
   image.height = image_header.biHeight;
   image.data = (char *)malloc(image_header.biWidth * image_header.biHeight);
+  int bytes_per_pixel = image_header.biBitCount / 8;
+  int row_size = (image.width * bytes_per_pixel + 3) & ~3;
 
   fseek(file, file_header.bfOffBits, SEEK_SET);
 
-  unsigned char *row_data = (unsigned char *)malloc(image.width);
-  for (int y = 0; y < image.height; y++) {
-    int dest_row = image.height - 1 - y;
-    fread(row_data, 1, image.width, file);
-    memcpy(&image.data[dest_row * image.width], row_data, image.width);
+  for (int y = image.height - 1; y >= 0; y--) {
+    char* row = image.data + y * image.width * bytes_per_pixel;
+    fread(row, 1, row_size, file);
   }
 
-  free(row_data);
   fclose(file);
 
   return image;
@@ -163,12 +161,6 @@ SPRITE_SHEET read_sprite_sheet(const char *filename) {
 
   if(fscanf(file, "%u", &sprite_sheet.count) != 1) {
     printf("Error: Could not read sprite sheet count\n");
-    fclose(file);
-    exit(1);
-  }
-
-  if(fscanf(file, "%u %u", &sprite_sheet.width, &sprite_sheet.height) != 2) {
-    printf("Error: Could not read sprite sheet dimensions\n");
     fclose(file);
     exit(1);
   }

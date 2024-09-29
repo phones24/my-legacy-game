@@ -1,8 +1,7 @@
-#ifndef EVENT_NEBULA_H
-#define EVENT_NEBULA_H
+#pragma once
 
 #include "graphics_def.h"
-#include "level_events_def.h"
+#include "level_events.h"
 #include "level.h"
 
 typedef struct {
@@ -33,4 +32,3 @@ void draw_event__nebula(LEVEL_EVENT *event) {
 void clear_event__nebula(LEVEL_EVENT *event) {
 }
 
-#endif

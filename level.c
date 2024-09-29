@@ -3,7 +3,6 @@
 #include <mem.h>
 
 #include "event_planets.h"
-// #include "event_nebula.h"
 #include "event_enemy1.h"
 #include "set.h"
 

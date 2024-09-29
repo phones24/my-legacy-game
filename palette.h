@@ -1,5 +1,4 @@
-#ifndef PALETTE_H
-#define PALETTE_H
+#pragma once
 
 #define PALETTE_SIZE 256
 
@@ -106,5 +105,3 @@ void init_palette() {
 void clear_palette() {
   free(palette);
 }
-
-#endif
