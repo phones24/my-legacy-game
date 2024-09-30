@@ -33,9 +33,9 @@ void create_enemy1() {
 
   enemy->base.id = rand() % 100000000;
   enemy->base.x = 10 + (rand() % (SCREEN_WIDTH - 50));
-  enemy->base.y = 0.0f - enemy1_sprite.height[sprite_num];
-  enemy->base.width = enemy1_sprite.width[sprite_num];
-  enemy->base.height = enemy1_sprite.height[sprite_num];
+  enemy->base.y = 0.0f - enemy2_sprite.height[sprite_num];
+  enemy->base.width = enemy2_sprite.width[sprite_num];
+  enemy->base.height = enemy2_sprite.height[sprite_num];
   enemy->base.hit = hit;
   enemy->speed = 8;
   enemy->energy = 2;
@@ -48,7 +48,7 @@ void create_enemy1() {
 }
 
 void create_explosion(int x, int y) {
-  explosions[explosions_count].x = x + (enemy1_sprite.width[0] - enemy1_expl_sprite.width[0]) / 2;
+  explosions[explosions_count].x = x + (enemy2_sprite.width[0] - enemy1_expl_sprite.width[0]) / 2;
   explosions[explosions_count].y = y;
   explosions[explosions_count].width = enemy1_expl_sprite.width[0];
   explosions[explosions_count].height = enemy1_expl_sprite.height[0];
@@ -113,7 +113,20 @@ void draw_event__enemy1() {
 
     float speed = (float)(enemy->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
 
-    draw_sprite(enemy1_sprite, sprite_num, enemy->base.x, enemy->base.y);
+    draw_sprite(enemy2_sprite, sprite_num, enemy->base.x, enemy->base.y);
+
+    if (enemy->just_hit) {
+      draw_sprite(
+        small_expl_sprite,
+        0,
+        enemy->base.x + ((enemy2_sprite.width[sprite_num] - small_expl_sprite.width[0]) / 2) + 2,
+        enemy->base.y + (enemy2_sprite.height[sprite_num] / 2) - 3
+      );
+
+      if(game_clock_ms - enemy->last_hit_clock > 100) {
+        enemy->just_hit = 0;
+      }
+    }
 
     enemy->base.y += speed;
   }
@@ -137,6 +150,7 @@ void hit(void *object) {
   ENEMY1 *enemy = object;
 
   enemy->energy--;
-  enemy->base.y -= 2;
+  enemy->just_hit = enemy->energy > 0 ? 1 : 0;
+  enemy->last_hit_clock = game_clock_ms;
 }
 

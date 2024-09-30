@@ -25,6 +25,8 @@ volatile struct {
   unsigned long movement_clock;
   unsigned long after_movement_clock;
   int sprite_num;
+  int exploding;
+  int visible;
 } ship;
 
 PROJECTILE projectile[PROJECTILES_NUM];
@@ -34,6 +36,9 @@ int projectile_x_offset = 0;
 int projectile_width = 0;
 int projectile_height = 0;
 int projectile_sprite_num = 0;
+int ship_expl_sprite_num = 0;
+unsigned long last_shot_clock = 0;
+unsigned long last_exp_frame_clock = 0;
 
 void init_ship() {
   ship.x = 140;
@@ -42,6 +47,8 @@ void init_ship() {
   ship.y_speed = 0;
   ship.movement_clock = 0;
   ship.sprite_num = 2;
+  ship.exploding = 0;
+  ship.visible = 1;
 }
 
 void init_projectile() {
@@ -57,8 +64,6 @@ void init_projectile() {
 }
 
 void shot_projectile() {
-  static unsigned long last_shot_clock = 0;
-
   if (keys.space) {
     if (game_clock_ms - last_shot_clock < 150) {
       return;
@@ -113,6 +118,10 @@ int check_ship_collision(int x, int y, int width, int height) {
 }
 
 void draw_ship_projectile() {
+  if(ship.exploding || !ship.visible) {
+    return;
+  }
+
   shot_projectile();
 
   int speed = (PROJECTILE_SPEED * delta_frame_time) / TICKS_PER_SECOND;
@@ -162,6 +171,36 @@ void post_movement_anim_2() {
 }
 
 void draw_ship() {
+  if(!ship.visible) {
+    return;
+  }
+
+  if(ship.exploding) {
+    draw_sprite(
+      ship_expl_sprite,
+      ship_expl_sprite_num,
+      ship.x + (ship_sprite.width[ship.sprite_num] - ship_expl_sprite.width[ship_expl_sprite_num]) / 2,
+      ship.y + (ship_sprite.height[ship.sprite_num] - ship_expl_sprite.height[ship_expl_sprite_num]) / 2
+    );
+
+    if(game_clock_ms - last_exp_frame_clock > 100) {
+      ship_expl_sprite_num++;
+      last_exp_frame_clock = game_clock_ms;
+    }
+
+    if(ship_expl_sprite_num > ship_expl_sprite.max_sprites) {
+      ship.visible = 0;
+      ship.exploding = 0;
+    }
+
+    return;
+  }
+
+  if(!ship.exploding && check_ship_collision(ship.x, ship.y, ship_sprite.width[ship.sprite_num], ship_sprite.height[ship.sprite_num])) {
+    ship.exploding = 1;
+    return;
+  }
+
   int x_speed_mult = keys.left ? -1 : 1;
   int y_speed_mult = keys.up ? -1 : 1;
 

@@ -11,6 +11,8 @@ typedef struct {
   BASE_OBJECT base;
   float speed;
   int energy;
+  int just_hit;
+  unsigned long last_hit_clock;
 } ENEMY1;
 
 extern ENEMY1* enemies[MAX_ENEMIES];

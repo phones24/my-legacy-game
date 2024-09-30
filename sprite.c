@@ -34,7 +34,15 @@ SPRITE3 load_sprite(const char *name)
 
     int index = 0;
     for (int y = sprite_def.y0; y <= sprite_def.y1; y++) {
+      if(y >= image.height) {
+        break;
+      }
+
       for (int x = sprite_def.x0; x <= sprite_def.x1; x++) {
+        if(x >= image.width) {
+          break;
+        }
+
         sprite.data[num][index++] = image.data[x + y * image.width];
       }
     }
