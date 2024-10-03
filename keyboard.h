@@ -8,6 +8,7 @@ typedef struct
   int right;
   int escape;
   int space;
+  int p;
 } KEYS;
 
 extern volatile KEYS keys;

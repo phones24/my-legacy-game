@@ -27,6 +27,8 @@ volatile struct {
   int sprite_num;
   int exploding;
   int visible;
+  int lives;
+  int invincible;
 } ship;
 
 PROJECTILE projectile[PROJECTILES_NUM];
@@ -39,6 +41,13 @@ int projectile_sprite_num = 0;
 int ship_expl_sprite_num = 0;
 unsigned long last_shot_clock = 0;
 unsigned long last_exp_frame_clock = 0;
+unsigned long invincible_clock = 0;
+int invincible_draw = 0;
+
+void set_invincible() {
+  ship.invincible = 1;
+  invincible_clock = game_clock_ms;
+}
 
 void init_ship() {
   ship.x = 140;
@@ -49,6 +58,20 @@ void init_ship() {
   ship.sprite_num = 2;
   ship.exploding = 0;
   ship.visible = 1;
+  ship.lives = 3;
+
+  set_invincible();
+  init_projectile();
+}
+
+void revive_ship() {
+  init_ship();
+
+  ship.lives--;
+
+  last_shot_clock = 0;
+  last_exp_frame_clock = 0;
+  ship_expl_sprite_num = 0;
 }
 
 void init_projectile() {
@@ -170,36 +193,58 @@ void post_movement_anim_2() {
   ship.sprite_num = 2;
 }
 
+void check_invincibility() {
+  if(!ship.invincible) {
+    return;
+  }
+
+  if(game_clock_ms - invincible_clock > 2000) {
+    ship.invincible = 0;
+  }
+
+  // cheap ass invincibility animation
+  if(game_clock_ms % 20 == 0) {
+    invincible_draw = !invincible_draw;
+  }
+}
+
+void draw_ship_explosion() {
+  draw_sprite(
+    ship_expl_sprite,
+    ship_expl_sprite_num,
+    ship.x + (ship_sprite.width[ship.sprite_num] - ship_expl_sprite.width[ship_expl_sprite_num]) / 2,
+    ship.y + (ship_sprite.height[ship.sprite_num] - ship_expl_sprite.height[ship_expl_sprite_num]) / 2
+  );
+
+  if(game_clock_ms - last_exp_frame_clock > 100) {
+    ship_expl_sprite_num++;
+    last_exp_frame_clock = game_clock_ms;
+  }
+
+  if(ship_expl_sprite_num > ship_expl_sprite.max_sprites) {
+    ship.visible = 0;
+    ship.exploding = 0;
+
+    schedule_task(1000, revive_ship);
+  }
+}
+
 void draw_ship() {
   if(!ship.visible) {
     return;
   }
 
   if(ship.exploding) {
-    draw_sprite(
-      ship_expl_sprite,
-      ship_expl_sprite_num,
-      ship.x + (ship_sprite.width[ship.sprite_num] - ship_expl_sprite.width[ship_expl_sprite_num]) / 2,
-      ship.y + (ship_sprite.height[ship.sprite_num] - ship_expl_sprite.height[ship_expl_sprite_num]) / 2
-    );
-
-    if(game_clock_ms - last_exp_frame_clock > 100) {
-      ship_expl_sprite_num++;
-      last_exp_frame_clock = game_clock_ms;
-    }
-
-    if(ship_expl_sprite_num > ship_expl_sprite.max_sprites) {
-      ship.visible = 0;
-      ship.exploding = 0;
-    }
-
+    draw_ship_explosion();
     return;
   }
 
-  if(!ship.exploding && check_ship_collision(ship.x, ship.y, ship_sprite.width[ship.sprite_num], ship_sprite.height[ship.sprite_num])) {
+  if(!ship.exploding && !ship.invincible && check_ship_collision(ship.x, ship.y, ship_sprite.width[ship.sprite_num], ship_sprite.height[ship.sprite_num])) {
     ship.exploding = 1;
     return;
   }
+
+  check_invincibility();
 
   int x_speed_mult = keys.left ? -1 : 1;
   int y_speed_mult = keys.up ? -1 : 1;
@@ -262,7 +307,7 @@ void draw_ship() {
   ship.x += ship.x_speed;
   ship.y += ship.y_speed;
 
-  // svae if ship is moving horizontally
+  // save if ship is moving horizontally
   x_movement = ship.x_speed != 0 ? 1 : 0;
 
   // check screen boundaries
@@ -292,6 +337,10 @@ void draw_ship() {
     if (ship.movement_clock == 0) {
       ship.movement_clock = game_clock_ms;
     }
+  }
+
+  if (!invincible_draw && ship.invincible) {
+    return;
   }
 
   // draw ship

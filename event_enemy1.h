@@ -15,9 +15,7 @@ typedef struct {
   unsigned long last_hit_clock;
 } ENEMY1;
 
-extern ENEMY1* enemies[MAX_ENEMIES];
-extern int enemies_count;
-
+void init_event__enemy1();
 void hit(void *object);
 void start_event__enemy1(LEVEL_EVENT *event);
 void draw_event__enemy1();

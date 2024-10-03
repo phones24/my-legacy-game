@@ -7,26 +7,31 @@
 #include "event_enemy1.h"
 #include "timer.h"
 #include "collision.h"
+#include "list.h"
 
-#define EVENT_PERIOD 20000
+#define EVENT_PERIOD 50000
 
-struct {
+typedef struct {
   int x;
   float y;
   int width;
   int height;
   int sprite_num;
   unsigned long last_frame_clock;
-} explosions[MAX_ENEMIES];
-int explosions_count = 0;
+} EXPLOSION;
+
 
 LEVEL_EVENT *level_event;
-ENEMY1* enemies[MAX_ENEMIES];
-int enemies_count = 0;
+LIST *enemies_list;
+LIST *explosions;
 int sprite_num = 0;
 unsigned long last_enemy_clock = 0;
 unsigned long start_event_clock = 0;
 
+void init_event__enemy1() {
+  enemies_list = list_create();
+  explosions = list_create();
+}
 
 void create_enemy1() {
   ENEMY1 *enemy = (ENEMY1 *)malloc(sizeof(ENEMY1));
@@ -40,7 +45,7 @@ void create_enemy1() {
   enemy->speed = 8;
   enemy->energy = 2;
 
-  enemies[enemies_count++] = enemy;
+  list_add(enemies_list, enemy);
 
   add_object_to_collision_list((COL_OBJECT *)enemy);
 
@@ -48,14 +53,16 @@ void create_enemy1() {
 }
 
 void create_explosion(int x, int y) {
-  explosions[explosions_count].x = x + (enemy2_sprite.width[0] - enemy1_expl_sprite.width[0]) / 2;
-  explosions[explosions_count].y = y;
-  explosions[explosions_count].width = enemy1_expl_sprite.width[0];
-  explosions[explosions_count].height = enemy1_expl_sprite.height[0];
-  explosions[explosions_count].sprite_num = 0;
-  explosions[explosions_count].last_frame_clock = game_clock_ms;
+  EXPLOSION *explosion = malloc(sizeof(EXPLOSION));
 
-  explosions_count++;
+  explosion->x = x + (enemy2_sprite.width[0] - enemy1_expl_sprite.width[0]) / 2;
+  explosion->y = y;
+  explosion->width = enemy1_expl_sprite.width[0];
+  explosion->height = enemy1_expl_sprite.height[0];
+  explosion->sprite_num = 0;
+  explosion->last_frame_clock = game_clock_ms;
+
+  list_add(explosions, explosion);
 }
 
 void start_event__enemy1(LEVEL_EVENT *event) {
@@ -64,52 +71,50 @@ void start_event__enemy1(LEVEL_EVENT *event) {
 }
 
 void draw_explosions() {
-  for(int i = 0; i < explosions_count; i++) {
-    if (explosions[i].sprite_num >= enemy1_expl_sprite.max_sprites || explosions[i].y > SCREEN_HEIGHT) {
-      explosions[i] = explosions[explosions_count - 1];
-      explosions_count--;
+  for(int i = 0; i < explosions->size; i++) {
+    EXPLOSION *explosion = list_get(explosions, i);
+    if (explosion->sprite_num >= enemy1_expl_sprite.max_sprites || explosion->y > SCREEN_HEIGHT) {
+      list_remove(explosions, i);
       continue;
     }
 
-    draw_sprite(enemy1_expl_sprite, explosions[i].sprite_num, explosions[i].x, explosions[i].y);
+    draw_sprite(enemy1_expl_sprite, explosion->sprite_num, explosion->x, explosion->y);
 
-    if(game_clock_ms - explosions[i].last_frame_clock > 50) {
-      explosions[i].sprite_num++;
-      explosions[i].last_frame_clock = game_clock_ms;
+    if(game_clock_ms - explosion->last_frame_clock > 50) {
+      explosion->sprite_num++;
+      explosion->last_frame_clock = game_clock_ms;
     }
 
-    explosions[i].y += 0.5;
+    explosion->y += 0.5;
   }
 }
 
 void draw_event__enemy1() {
   // create enemy if there are no enemies and still enough time
-  if(enemies_count < MAX_ENEMIES && game_clock_ms - start_event_clock <= EVENT_PERIOD && game_clock_ms - last_enemy_clock > 500) {
+  if(enemies_list->size < MAX_ENEMIES && game_clock_ms - start_event_clock <= EVENT_PERIOD && game_clock_ms - last_enemy_clock > 500) {
     create_enemy1();
   }
 
-  for(int i = 0; i < enemies_count; i++) {
-    if (enemies[i]->base.y > SCREEN_HEIGHT) {
-      remove_object_from_collision_list((COL_OBJECT *)enemies[i]);
-      free(enemies[i]);
-      enemies[i] = enemies[enemies_count - 1];
-      enemies_count--;
+  for(int i = 0; i < enemies_list->size; i++) {
+    ENEMY1 *enemy = list_get(enemies_list, i);
+
+    if(enemy->base.y > SCREEN_HEIGHT) {
+      remove_object_from_collision_list((COL_OBJECT *)enemy);
+      list_remove(enemies_list, i);
       continue;
     }
 
-    if (enemies[i]->energy <= 0) {
-      create_explosion(enemies[i]->base.x, enemies[i]->base.y);
-      remove_object_from_collision_list((COL_OBJECT *)enemies[i]);
-      free(enemies[i]);
-      enemies[i] = enemies[enemies_count - 1];
-      enemies_count--;
+    if(enemy->energy <= 0) {
+      create_explosion(enemy->base.x, enemy->base.y);
+      remove_object_from_collision_list((COL_OBJECT *)enemy);
+      list_remove(enemies_list, i);
       continue;
     }
   }
 
   // draw enemies
-  for(int i = 0; i < enemies_count; i++) {
-    ENEMY1 *enemy = enemies[i];
+  for(int i = 0; i < enemies_list->size; i++) {
+    ENEMY1 *enemy = list_get(enemies_list, i);
 
     float speed = (float)(enemy->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
 
@@ -135,14 +140,8 @@ void draw_event__enemy1() {
   draw_explosions();
 
   // stop event if there are no enemies and enough time has passed
-  if(game_clock_ms - start_event_clock > EVENT_PERIOD && enemies_count <= 0) {
+  if(game_clock_ms - start_event_clock > EVENT_PERIOD && enemies_list->size == 0) {
     stop_event(level_event);
-  }
-}
-
-void clear_event__enemy1() {
-  for(int i = 0; i < enemies_count; i++) {
-    free(enemies[i]);
   }
 }
 
@@ -152,5 +151,20 @@ void hit(void *object) {
   enemy->energy--;
   enemy->just_hit = enemy->energy > 0 ? 1 : 0;
   enemy->last_hit_clock = game_clock_ms;
+}
+
+void clear_event__enemy1() {
+  for(int i = 0; i < enemies_list->size; i++) {
+    ENEMY1 *enemy = list_get(enemies_list, i);
+    free(enemy);
+  }
+
+  for(int i = 0; i < explosions->size; i++) {
+    EXPLOSION *explosion = list_get(explosions, i);
+    free(explosion);
+  }
+
+  list_free(explosions);
+  list_free(enemies_list);
 }
 

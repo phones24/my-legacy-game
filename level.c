@@ -13,6 +13,19 @@ int next_event_num = 0;
 LEVEL_EVENT *current_events[MAX_CURRENT_EVENTS];
 SET* drawn_event_types;
 
+void init_event_of_type(LEVEL_EVENT_TYPE type) {
+  switch (type) {
+    case EVENT_TYPE_PLANET:
+      init_event__planet();
+      break;
+    case EVENT_TYPE_ENEMY1:
+      init_event__enemy1();
+      break;
+    default:
+      break;
+  }
+}
+
 void draw_event_of_type(LEVEL_EVENT_TYPE type) {
   switch (type) {
     case EVENT_TYPE_PLANET:
@@ -59,6 +72,19 @@ void init_level() {
     level_inline.events[i].id = i;
     level_inline.events[i].status = EVENT_STATUS_NOT_STARTED;
   }
+
+  for (int i = 0; i < level_inline.count; i++) {
+    LEVEL_EVENT *event = &level_inline.events[i];
+
+    if (set_has(drawn_event_types, event->type)) {
+      continue;
+    }
+
+    init_event_of_type(event->type);
+
+    set_add(drawn_event_types, event->type);
+  }
+
 }
 
 void check_active_events() {

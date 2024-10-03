@@ -75,4 +75,3 @@ void draw_sprite(SPRITE3 sprite, int num, int pos_x, int pos_y) {
 
   draw_image(sprite.data[num], sprite.width[num], sprite.height[num], pos_x, pos_y);
 }
-

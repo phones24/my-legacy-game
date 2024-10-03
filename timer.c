@@ -22,17 +22,21 @@ unsigned *bios_ticks = (unsigned *)0x0040006CL;
 volatile unsigned long game_clock = 0;
 volatile unsigned long game_clock_ms = 0;
 unsigned long begin_frame_time, delta_frame_time = 10;
+volatile int on_pause = 0;
+
 
 void interrupt (*old_timer_isr)(void);
 
 void interrupt new_timer_isr(void) {
-  game_clock++;
-  game_clock_ms = game_clock * TICKS_PER_SECOND;
+  if(!on_pause) {
+    game_clock++;
+    game_clock_ms = game_clock * TICKS_PER_SECOND;
 
-  for (int i = 0; i < MAX_TASKS; i++) {
-    if (task_list[i].active && game_clock_ms >= task_list[i].time_to_execute) {
-        task_list[i].func();
-        task_list[i].active = 0;
+    for (int i = 0; i < MAX_TASKS; i++) {
+      if (task_list[i].active && game_clock_ms >= task_list[i].time_to_execute) {
+          task_list[i].func();
+          task_list[i].active = 0;
+      }
     }
   }
 

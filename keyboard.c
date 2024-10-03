@@ -6,6 +6,7 @@
 #define KEYBOARD_IRQ 0x09
 
 volatile KEYS keys;
+volatile char all_keys[0xff] = { 0 };
 
 void interrupt (*old_keyboard_isr)(void);
 
@@ -13,57 +14,19 @@ void interrupt new_keyboard_isr()
 {
   char scan_code = inp(0x60);
 
-  switch (scan_code)
-  {
-    case 0x39:
-      keys.space = 1;
-      break;
-    // case 0x11:
-    case 0x48:
-      keys.up = 1;
-      break;
-    // case 0x1F:
-    case 0x50:
-      keys.down = 1;
-      break;
-    // case 0x1E:
-    case 0x4B:
-      keys.left = 1;
-      break;
-    // case 0x20:
-    case 0x4D:
-      keys.right = 1;
-      break;
-    case 0x01:
-      keys.escape = 1;
-      break;
-
-    // case 0x91:
-    case 0xB9:
-      keys.space = 0;
-      break;
-    case 0xC8:
-      keys.up = 0;
-      break;
-    // case 0x9F:
-    case 0xD0:
-      keys.down = 0;
-      break;
-    // case 0x9E:
-    case 0xCB:
-      keys.left = 0;
-      break;
-    // case 0xA0:
-    case 0xCD:
-      keys.right = 0;
-      break;
-    case 0x3B:
-      keys.escape = 0;
-      break;
-
-    default:
-        break;
+  if(scan_code & 128) {
+    all_keys[scan_code & 127] = 0;
+  } else {
+    all_keys[scan_code] = 1;
   }
+
+  keys.p = all_keys[0x19];
+  keys.space = all_keys[0x39];
+  keys.up = all_keys[0x48];
+  keys.down = all_keys[0x50];
+  keys.left = all_keys[0x4B];
+  keys.right = all_keys[0x4D];
+  keys.escape = all_keys[0x01];
 
   outp(0x20, 0x20);
 

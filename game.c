@@ -19,7 +19,7 @@
 #include "ship.h"
 
 volatile unsigned long begin_frame_ms, delta_frame_ms;
-volatile unsigned int frames_count = 0;
+volatile int frames_count = 0;
 char fps[10];
 
 void draw_fps()
@@ -30,13 +30,28 @@ void draw_fps()
 
   if (game_clock_ms - begin_frame_ms > 1000)
   {
-    sprintf(fps, "fps: %d", frames_count);
+    sprintf(fps, "fps: %i", frames_count);
     frames_count = 0;
   } else {
     frames_count++;
   }
 
   draw_string(SCREEN_WIDTH - 80, 4, fps, 3);
+}
+
+void pause() {
+  if(keys.p) {
+    on_pause = 1;
+  }
+
+  while(on_pause) {
+    wait_for_vsync();
+
+    if(keys.p) {
+      on_pause = 0;
+      break;
+    }
+  }
 }
 
 void draw_debug_info() {
@@ -105,7 +120,6 @@ int main()
   load_sprites();
   init_stars();
   init_ship();
-  init_projectile();
   init_level();
 
   set_mode_13h_modex();
@@ -142,7 +156,7 @@ int main()
     draw_ship();
     draw_ship_projectile();
     // draw_debug_info();
-
+    pause();
 
 
 

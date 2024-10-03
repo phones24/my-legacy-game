@@ -17,6 +17,10 @@ typedef struct {
 PLANET *planets[20];
 int planets_count = 0;
 
+void init_event__planet() {
+  // enemies_list = list_create(sizeof(ENEMY1));
+}
+
 void start_event__planet(LEVEL_EVENT *event) {
   PLANET *planet = (PLANET *)malloc(sizeof(PLANET));
 
