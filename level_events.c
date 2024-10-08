@@ -2,6 +2,11 @@
 
 LEVEL_DATA level_inline = {
   .events = {
+    // {
+    //   .type = EVENT_TYPE_ROCK,
+    //   .clock = 1000,
+    //   .event_data_size = 0,
+    // },
     {
       .type = EVENT_TYPE_ENEMY1,
       .clock = 1000,

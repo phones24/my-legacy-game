@@ -17,27 +17,30 @@
 #include "level.h"
 #include "stars.h"
 #include "ship.h"
+#include "hud.h"
+#include "collision.h"
+#include "sound.h"
 
-volatile unsigned long begin_frame_ms, delta_frame_ms;
-volatile int frames_count = 0;
-char fps[10];
+// volatile unsigned long begin_frame_ms, delta_frame_ms;
+// int frames_count = 0;
+// char fps[10];
 
-void draw_fps()
-{
-  if (frames_count == 0) {
-    begin_frame_ms = game_clock_ms;
-  }
+// void draw_fps()
+// {
+//   if (frames_count == 0) {
+//     begin_frame_ms = game_clock_ms;
+//   }
 
-  if (game_clock_ms - begin_frame_ms > 1000)
-  {
-    sprintf(fps, "fps: %i", frames_count);
-    frames_count = 0;
-  } else {
-    frames_count++;
-  }
+//   if (game_clock_ms - begin_frame_ms > 1000)
+//   {
+//     sprintf(fps, "fps: %i", frames_count);
+//     frames_count = 0;
+//   } else {
+//     frames_count++;
+//   }
 
-  draw_string(SCREEN_WIDTH - 80, 4, fps, 3);
-}
+//   draw_string(SCREEN_WIDTH - 80, 4, fps, 3);
+// }
 
 void pause() {
   if(keys.p) {
@@ -67,8 +70,8 @@ void draw_debug_info() {
   // draw_string(2, 24, str, 3);
   // sprintf(str, "space: %d", keys.space);
   // draw_string(2, 32, str, 3);
-  sprintf(str, "clock: %lu", game_clock);
-  draw_string(2, 0, str, 3);
+  // sprintf(str, "clock: %lu", frame_count);
+  // draw_string(2, 0, str, 3);
   sprintf(str, "clock_ms: %lu", game_clock_ms);
   draw_string(2, 8, str, 3);
   sprintf(str, "delta_frame_time: %lu", delta_frame_time);
@@ -80,20 +83,11 @@ void draw_debug_info() {
 
 void exit_handler() {
   restore_keyboard();
-  restore_timer();
+  // restore_timer();
 }
 
 int main()
 {
-  // printf("sizeof(unsigned short): %u\n", sizeof(unsigned short));
-  // printf("sizeof(unsigned int): %u\n", sizeof(unsigned int));
-  // printf("sizeof(unsigned long): %u\n", sizeof(unsigned long));
-  // printf("sizeof(char): %u\n", sizeof(char));
-  // printf("sizeof(int): %u\n", sizeof(int));
-  // printf("sizeof(long): %u\n", sizeof(long));
-  // printf("sizeof(float): %u\n", sizeof(float));
-  // exit(1);
-
   srand(time(NULL));
 
   // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
@@ -113,10 +107,12 @@ int main()
 
 
   init_keyboard();
-  init_timer();
+  // init_timer();
 
   atexit(exit_handler);
 
+  init_sound();
+  init_collision_list();
   load_sprites();
   init_stars();
   init_ship();
@@ -127,7 +123,7 @@ int main()
 
   // int y = 0
   while (1) {
-    begin_frame_time = game_clock;
+    begin_frame_time = game_clock_ms;
     // wait_for_vsync();
 
     set_active_page();
@@ -159,8 +155,8 @@ int main()
     pause();
 
 
-
-    draw_fps();
+    draw_hud();
+    // draw_fps();
 
     set_visible_page();
     wait_for_vsync();
@@ -169,7 +165,7 @@ int main()
       break;
     }
 
-    delta_frame_time = game_clock - begin_frame_time;
+    delta_frame_time = game_clock_ms - begin_frame_time;
   }
 
   getch();
@@ -182,7 +178,9 @@ int main()
   clear_stars();
   free_sprites();
   clear_level_data();
+  clear_collision_list();
   clear_palette();
+  clear_sound();
 
   return 0;
 }

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "keyboard.h"
 #include "all_sprites.h"
 #include "graphics_def.h"
@@ -6,6 +8,7 @@
 #include "sprite.h"
 #include "event_enemy1.h"
 #include "ship.h"
+#include "sound.h"
 
 #define PROJECTILES_NUM 20
 #define SHIP_SPEED 20
@@ -17,32 +20,19 @@ typedef struct {
   int visible;
 } PROJECTILE;
 
-volatile struct {
-  int x;
-  int y;
-  int x_speed;
-  int y_speed;
-  unsigned long movement_clock;
-  unsigned long after_movement_clock;
-  int sprite_num;
-  int exploding;
-  int visible;
-  int lives;
-  int invincible;
-} ship;
-
-PROJECTILE projectile[PROJECTILES_NUM];
-int x_movement = 0;
-int last_x_direction = 0;
-int projectile_x_offset = 0;
-int projectile_width = 0;
-int projectile_height = 0;
-int projectile_sprite_num = 0;
-int ship_expl_sprite_num = 0;
-unsigned long last_shot_clock = 0;
-unsigned long last_exp_frame_clock = 0;
-unsigned long invincible_clock = 0;
-int invincible_draw = 0;
+volatile SHIP ship;
+static PROJECTILE projectile[PROJECTILES_NUM];
+static int x_movement = 0;
+static int last_x_direction = 0;
+static int projectile_x_offset = 0;
+static int projectile_width = 0;
+static int projectile_height = 0;
+static int projectile_sprite_num = 0;
+static int ship_expl_sprite_num = 0;
+static unsigned long last_shot_clock = 0;
+static unsigned long last_exp_frame_clock = 0;
+static unsigned long invincible_clock = 0;
+static int invincible_draw = 0;
 
 void set_invincible() {
   ship.invincible = 1;
@@ -105,6 +95,8 @@ void shot_projectile() {
       prj->visible = 1;
       last_shot_clock = game_clock_ms;
 
+      play_sound(sound_ship_shot, 30);
+
       break;
     }
   }
@@ -115,11 +107,15 @@ void shot_projectile() {
 }
 
 int check_projectile_collision(int x, int y, int width, int height) {
-  for(int i = 0; i < collision_objects_count; i++) {
-    COL_OBJECT *object = collision_objects[i];
+  for(int i = 0; i < collision_objects->size; i++) {
+    COL_OBJECT *object = list_get(collision_objects, i);
 
-    if (x + width > object->base.x && x < object->base.x + object->base.width && y + height > object->base.y && y < object->base.y + object->base.height) {
-      object->base.hit(object);
+    if (x + width > object->base.x + object->base.hit_box_x1 &&
+        x < object->base.x + object->base.hit_box_x2 &&
+        y + height > object->base.y + object->base.hit_box_y1 &&
+        y < object->base.y + object->base.hit_box_y2
+    ) {
+      object->base.on_hit(object);
       return 1;
     }
   }
@@ -128,11 +124,11 @@ int check_projectile_collision(int x, int y, int width, int height) {
 }
 
 int check_ship_collision(int x, int y, int width, int height) {
-  for(int i = 0; i < collision_objects_count; i++) {
-    COL_OBJECT *object = collision_objects[i];
+  for(int i = 0; i < collision_objects->size; i++) {
+    COL_OBJECT *object = list_get(collision_objects, i);
 
     if (x + width > object->base.x && x < object->base.x + object->base.width && y + height > object->base.y && y < object->base.y + object->base.height) {
-      object->base.hit(object);
+      object->base.on_hit(object);
       return 1;
     }
   }
@@ -198,13 +194,15 @@ void check_invincibility() {
     return;
   }
 
+  static unsigned long last_invincible_blink = 0;
+
   if(game_clock_ms - invincible_clock > 2000) {
     ship.invincible = 0;
   }
 
-  // cheap ass invincibility animation
-  if(game_clock_ms % 20 == 0) {
+  if(game_clock_ms - last_invincible_blink > 20) {
     invincible_draw = !invincible_draw;
+    last_invincible_blink = game_clock_ms;
   }
 }
 
@@ -241,6 +239,7 @@ void draw_ship() {
 
   if(!ship.exploding && !ship.invincible && check_ship_collision(ship.x, ship.y, ship_sprite.width[ship.sprite_num], ship_sprite.height[ship.sprite_num])) {
     ship.exploding = 1;
+    play_sound(sound_ship_expl, 50);
     return;
   }
 

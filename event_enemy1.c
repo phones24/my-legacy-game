@@ -8,6 +8,7 @@
 #include "timer.h"
 #include "collision.h"
 #include "list.h"
+#include "sound.h"
 
 #define EVENT_PERIOD 50000
 
@@ -20,13 +21,12 @@ typedef struct {
   unsigned long last_frame_clock;
 } EXPLOSION;
 
-
-LEVEL_EVENT *level_event;
-LIST *enemies_list;
-LIST *explosions;
-int sprite_num = 0;
-unsigned long last_enemy_clock = 0;
-unsigned long start_event_clock = 0;
+static LEVEL_EVENT *level_event;
+static LIST *enemies_list;
+static LIST *explosions;
+static int sprite_num = 0;
+static unsigned long last_enemy_clock = 0;
+static unsigned long start_event_clock = 0;
 
 void init_event__enemy1() {
   enemies_list = list_create();
@@ -36,18 +36,20 @@ void init_event__enemy1() {
 void create_enemy1() {
   ENEMY1 *enemy = (ENEMY1 *)malloc(sizeof(ENEMY1));
 
-  enemy->base.id = rand() % 100000000;
   enemy->base.x = 10 + (rand() % (SCREEN_WIDTH - 50));
   enemy->base.y = 0.0f - enemy2_sprite.height[sprite_num];
   enemy->base.width = enemy2_sprite.width[sprite_num];
   enemy->base.height = enemy2_sprite.height[sprite_num];
-  enemy->base.hit = hit;
-  enemy->speed = 8;
+  enemy->base.hit_box_x1 = 2;
+  enemy->base.hit_box_y1 = 2;
+  enemy->base.hit_box_x2 = enemy->base.width - 2;
+  enemy->base.hit_box_y2 = enemy->base.height - 2;
+  enemy->speed = 4;
   enemy->energy = 2;
 
   list_add(enemies_list, enemy);
 
-  add_object_to_collision_list((COL_OBJECT *)enemy);
+  add_object_to_collision_list((COL_OBJECT *)enemy, &on_hit);
 
   last_enemy_clock = game_clock_ms;
 }
@@ -108,6 +110,7 @@ void draw_event__enemy1() {
       create_explosion(enemy->base.x, enemy->base.y);
       remove_object_from_collision_list((COL_OBJECT *)enemy);
       list_remove(enemies_list, i);
+      play_sound(sound_enemy_expl, 40);
       continue;
     }
   }
@@ -145,7 +148,7 @@ void draw_event__enemy1() {
   }
 }
 
-void hit(void *object) {
+void on_hit(void *object) {
   ENEMY1 *enemy = object;
 
   enemy->energy--;

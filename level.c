@@ -4,6 +4,7 @@
 
 #include "event_planets.h"
 #include "event_enemy1.h"
+#include "event_rock.h"
 #include "set.h"
 
 #define MAX_CURRENT_EVENTS 10
@@ -21,6 +22,9 @@ void init_event_of_type(LEVEL_EVENT_TYPE type) {
     case EVENT_TYPE_ENEMY1:
       init_event__enemy1();
       break;
+    case EVENT_TYPE_ROCK:
+      init_event__rock();
+      break;
     default:
       break;
   }
@@ -33,6 +37,9 @@ void draw_event_of_type(LEVEL_EVENT_TYPE type) {
       break;
     case EVENT_TYPE_ENEMY1:
       draw_event__enemy1();
+      break;
+    case EVENT_TYPE_ROCK:
+      draw_event__rock();
       break;
     default:
       break;
@@ -47,6 +54,9 @@ void start_event(LEVEL_EVENT *event) {
     case EVENT_TYPE_ENEMY1:
       start_event__enemy1(event);
       break;
+    case EVENT_TYPE_ROCK:
+      start_event__rock(event);
+      break;
     default:
       break;
   }
@@ -59,6 +69,9 @@ void clear_event_of_type(LEVEL_EVENT_TYPE type) {
       break;
     case EVENT_TYPE_ENEMY1:
       clear_event__enemy1();
+      break;
+    case EVENT_TYPE_ROCK:
+      clear_event__rock();
       break;
     default:
       break;

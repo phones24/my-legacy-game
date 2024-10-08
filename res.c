@@ -53,13 +53,11 @@ void strip_newline(char *str)
 {
   int len = strlen(str);
 
-  if (len > 0 && (str[len - 1] == '\n' || str[len - 1] == '\r'))
-  {
+  if (len > 0 && (str[len - 1] == '\n' || str[len - 1] == '\r')) {
     str[len - 1] = '\0';
   }
 
-  if (len > 1 && str[len - 2] == '\r')
-  {
+  if (len > 1 && str[len - 2] == '\r') {
     str[len - 2] = '\0';
   }
 }
@@ -67,8 +65,7 @@ void strip_newline(char *str)
 IMAGE read_bmp(const char *filename)
 {
   FILE *file = fopen(filename, "rb");
-  if (!file)
-  {
+  if (!file) {
     fprintf(stderr, "Error opening BMP file %s, err: %s\n", filename, strerror(errno));
     exit(1);
   }
@@ -94,7 +91,13 @@ IMAGE read_bmp(const char *filename)
 
   image.width = image_header.biWidth;
   image.height = image_header.biHeight;
-  image.data = (char *)malloc(image_header.biWidth * image_header.biHeight);
+  image.data = malloc(image_header.biWidth * image_header.biHeight + 1);
+
+  if(image.data == NULL) {
+    printf("Error: Could not allocate memory for image data: %s\n", filename);
+    exit(1);
+  }
+
   int bytes_per_pixel = image_header.biBitCount / 8;
   int row_size = (image.width * bytes_per_pixel + 3) & ~3;
 

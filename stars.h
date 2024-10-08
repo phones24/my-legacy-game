@@ -53,7 +53,8 @@ void draw_star(STAR *star) {
 
 void draw_stars() {
   for(int i = 0; i < STARS_COUNT; i++) {
-    float speed = (stars[i].speed * (float)delta_frame_time) / (float)TICKS_PER_SECOND;
+    // float speed = (stars[i].speed * (float)delta_frame_time) / (float)TICKS_PER_SECOND;
+    float speed = (stars[i].speed * (float)delta_frame_time) / (float)100;
 
     if (speed < 0) {
       speed = 0.5;

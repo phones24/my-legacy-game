@@ -25,7 +25,7 @@ SPRITE3 load_sprite(const char *name)
 
     sprite.width[num] = sprite_def.x1 - sprite_def.x0 + 1;
     sprite.height[num] = sprite_def.y1 - sprite_def.y0 + 1;
-    sprite.data[num] = malloc(sprite.width[num] * sprite.height[num]);
+    sprite.data[num] = malloc(sprite.width[num] * sprite.height[num] + 1);
 
     if(sprite.data[num] == NULL) {
       printf("Error: Could not allocate memory for sprite data: %s, size: %i\n", txt_filename, sprite.width[num] * sprite.height[num]);
@@ -50,7 +50,7 @@ SPRITE3 load_sprite(const char *name)
 
   sprite.max_sprites = sprite_sheet.count;
 
-  for (int i = sprite_sheet.count; i < SPRITES_NUM; i++) {
+  for (int i = sprite_sheet.count; i < SPRITE_FRAMES_NUM; i++) {
     sprite.data[i] = NULL;
   }
 
@@ -61,7 +61,7 @@ SPRITE3 load_sprite(const char *name)
 
 void clear_sprite(SPRITE3 sprite)
 {
-  for (int i = 0; i < SPRITES_NUM; i++) {
+  for (int i = 0; i < SPRITE_FRAMES_NUM; i++) {
     if(sprite.data[i] != NULL) {
       free(sprite.data[i]);
     }

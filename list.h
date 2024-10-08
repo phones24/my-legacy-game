@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +10,7 @@ typedef struct {
     int capacity;
 } LIST;
 
-LIST* list_create() {
+inline LIST* list_create() {
     LIST* list = malloc(sizeof(LIST));
     if (!list) return NULL;
 
@@ -24,7 +26,7 @@ LIST* list_create() {
     return list;
 }
 
-void list_add(LIST* list, void* value) {
+inline void list_add(LIST* list, void* value) {
     if (!list) {
       return;
     }
@@ -44,12 +46,12 @@ void list_add(LIST* list, void* value) {
     list->items[list->size++] = value;
 }
 
-void* list_get(LIST* list, int index) {
+inline void* list_get(LIST* list, int index) {
     if (!list || index >= list->size) return NULL;
     return list->items[index];
 }
 
-void list_remove(LIST* list, int index) {
+inline void list_remove(LIST* list, int index) {
     if (!list || index >= list->size) {
       return;
     }
@@ -61,7 +63,7 @@ void list_remove(LIST* list, int index) {
     list->size--;
 }
 
-void list_free(LIST* list) {
+inline void list_free(LIST* list) {
     if (!list) {
       return;
     }

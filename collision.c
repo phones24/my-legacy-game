@@ -1,22 +1,34 @@
 #include "collision.h"
+#include "list.h"
 
-COL_OBJECT* collision_objects[100];
-int collision_objects_count = 0;
+LIST *collision_objects;
+static unsigned long last_id = 0;
 
-void add_object_to_collision_list(COL_OBJECT *object) {
-  if (collision_objects_count >= 100) {
+void init_collision_list() {
+  collision_objects = list_create(sizeof(COL_OBJECT));
+}
+
+void add_object_to_collision_list(COL_OBJECT *object, ON_HIT_FN on_hit) {
+  if (collision_objects->size >= 100) {
     return;
   }
 
-  collision_objects[collision_objects_count++] = object;
+  object->base.collision_id = last_id++;
+  object->base.on_hit = on_hit;
+
+  list_add(collision_objects, object);
 }
 
 void remove_object_from_collision_list(COL_OBJECT *entity) {
-  for (int i = 0; i < collision_objects_count; i++) {
-    if (collision_objects[i]->base.id == entity->base.id) {
-      collision_objects[i] = collision_objects[collision_objects_count - 1];
-      collision_objects_count--;
+  for (int i = 0; i < collision_objects->size; i++) {
+    COL_OBJECT* object = list_get(collision_objects, i);
+    if (object->base.collision_id == entity->base.collision_id) {
+      list_remove(collision_objects, i);
       return;
     }
   }
+}
+
+void clear_collision_list() {
+  list_free(collision_objects);
 }

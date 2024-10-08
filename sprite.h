@@ -1,11 +1,11 @@
 #pragma once
 
-#define SPRITES_NUM 20
+#define SPRITE_FRAMES_NUM 20
 
 typedef struct {
-  int width[SPRITES_NUM];
-  int height[SPRITES_NUM];
-  char *data[SPRITES_NUM];
+  int width[SPRITE_FRAMES_NUM];
+  int height[SPRITE_FRAMES_NUM];
+  char *data[SPRITE_FRAMES_NUM];
   int max_sprites;
 } SPRITE3;
 
