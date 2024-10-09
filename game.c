@@ -91,7 +91,7 @@ int main()
   srand(time(NULL));
 
   // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
-  // IMAGE image2 = read_bmp("res\\en1expl.bmp");
+  IMAGE image2 = read_bmp("res\\enemy1.bmp");
   // LEVEL_DATA level_data = load_level_data("res\\level.txt");
 
   // printf("event count: %u\n", level_data.count);
@@ -130,27 +130,18 @@ int main()
     clear_modex();
 
     // draw_image_rle(image.data, image.data_size, image.width, image.height, 20, 100);
-    // draw_image(image2.data, image2.width, image2.height, 20, 20);
+    // draw_image(image2.data, image2.width, image2.height, 20, 20, IMAGE_DRAW_MODE_FLIP_X);
     // for(int i = 0; i <= 200; i+=10) {
     // draw_line(0, i, 200, i, 200);
     // }
     // draw_line(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % 255);
 
-    // unsigned char c = 0;
-    // for (int i = 0; i < SCREEN_WIDTH; i++)
-    // {
-    //   for (int y = 0; y < SCREEN_HEIGHT; y++)
-    //   {
-    //     put_pixel(i, y, c);
-    //   }
 
-    // draw_line(130, 100, 140, 100, 100);
-    //   c++;
-    // }
     draw_stars();
     draw_level();
     draw_ship();
     draw_ship_projectile();
+
     // draw_debug_info();
     pause();
 

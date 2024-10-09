@@ -5,12 +5,13 @@
 #include "level.h"
 #include "base_object.h"
 
-#define MAX_ENEMIES 20
+#define MAX_ENEMIES 5
 
 typedef struct {
   BASE_OBJECT base;
   float speed;
   int energy;
+  int sprite_num;
   int just_hit;
   unsigned long last_hit_clock;
 } ENEMY1;

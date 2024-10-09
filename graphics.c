@@ -227,7 +227,7 @@ void draw_string(int x, int y, const char *str, char color) {
   }
 }
 
-void draw_image(char * data, int width, int height, int pos_x, int pos_y) {
+void draw_image(char * data, int width, int height, int pos_x, int pos_y, IMAGE_DRAW_MODE mode) {
   if(pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
     return;
   }
@@ -247,10 +247,10 @@ void draw_image(char * data, int width, int height, int pos_x, int pos_y) {
       continue;
     }
 
-    char * line = &data[y * width];
-    for (int x = 0; x < width; x++) {
+    char* line = &data[y * width];
+    for(int x = 0; x < width; x++) {
       color = *line++;
-      final_x = pos_x + x;
+      final_x = mode == IMAGE_DRAW_MODE_FLIP_X  ? pos_x + width - x : pos_x + x;
 
       if (color != TRANSPARENT_COLOR && final_x >= 0 && final_x < SCREEN_WIDTH) {
         put_pixel_modex(final_x, final_y, color);

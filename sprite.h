@@ -1,5 +1,7 @@
 #pragma once
 
+#include "graphics.h"
+
 #define SPRITE_FRAMES_NUM 20
 
 typedef struct {
@@ -11,6 +13,6 @@ typedef struct {
 
 SPRITE3 load_sprite(const char *name);
 void clear_sprite(SPRITE3 sprite);
-void draw_sprite(SPRITE3 sprite, int num, int pos_x, int pos_y);
+void draw_sprite(SPRITE3 sprite, int num, int pos_x, int pos_y, IMAGE_DRAW_MODE mode);
 
 

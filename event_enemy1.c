@@ -9,6 +9,7 @@
 #include "collision.h"
 #include "list.h"
 #include "sound.h"
+#include "ship.h"
 
 #define EVENT_PERIOD 50000
 
@@ -24,7 +25,6 @@ typedef struct {
 static LEVEL_EVENT *level_event;
 static LIST *enemies_list;
 static LIST *explosions;
-static int sprite_num = 0;
 static unsigned long last_enemy_clock = 0;
 static unsigned long start_event_clock = 0;
 
@@ -36,15 +36,16 @@ void init_event__enemy1() {
 void create_enemy1() {
   ENEMY1 *enemy = (ENEMY1 *)malloc(sizeof(ENEMY1));
 
+  enemy->sprite_num = 0;
   enemy->base.x = 10 + (rand() % (SCREEN_WIDTH - 50));
-  enemy->base.y = 0.0f - enemy2_sprite.height[sprite_num];
-  enemy->base.width = enemy2_sprite.width[sprite_num];
-  enemy->base.height = enemy2_sprite.height[sprite_num];
+  enemy->base.y = 0.0f - enemy2_sprite.height[enemy->sprite_num];
+  enemy->base.width = enemy2_sprite.width[enemy->sprite_num];
+  enemy->base.height = enemy2_sprite.height[enemy->sprite_num];
   enemy->base.hit_box_x1 = 2;
   enemy->base.hit_box_y1 = 2;
   enemy->base.hit_box_x2 = enemy->base.width - 2;
   enemy->base.hit_box_y2 = enemy->base.height - 2;
-  enemy->speed = 4;
+  enemy->speed = 3;
   enemy->energy = 2;
 
   list_add(enemies_list, enemy);
@@ -80,7 +81,7 @@ void draw_explosions() {
       continue;
     }
 
-    draw_sprite(enemy1_expl_sprite, explosion->sprite_num, explosion->x, explosion->y);
+    draw_sprite(enemy1_expl_sprite, explosion->sprite_num, explosion->x, explosion->y, IMAGE_DRAW_MODE_NORMAL);
 
     if(game_clock_ms - explosion->last_frame_clock > 50) {
       explosion->sprite_num++;
@@ -89,6 +90,28 @@ void draw_explosions() {
 
     explosion->y += 0.5;
   }
+}
+
+void enemy_movement(ENEMY1 *enemy) {
+    float speed = (float)(enemy->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
+    float x_speed = ship.x - enemy->base.x > 0 ? 0.3 : -0.3;
+    int has_x_speed = abs(ship.x - enemy->base.x) > 10 ? 1 : 0;
+
+    if(enemy->base.y > ship.y) {
+      has_x_speed = 0;
+    }
+
+    enemy->base.y += speed;
+    enemy->base.x += has_x_speed ? x_speed : 0;
+    enemy->sprite_num = 0;
+
+    if (has_x_speed && x_speed < 0) {
+      enemy->sprite_num = 1;
+    }
+
+    if (has_x_speed && x_speed > 0) {
+      enemy->sprite_num = 2;
+    }
 }
 
 void draw_event__enemy1() {
@@ -110,7 +133,7 @@ void draw_event__enemy1() {
       create_explosion(enemy->base.x, enemy->base.y);
       remove_object_from_collision_list((COL_OBJECT *)enemy);
       list_remove(enemies_list, i);
-      play_sound(sound_enemy_expl, 40);
+      play_sound(sound_enemy_expl, 64);
       continue;
     }
   }
@@ -119,24 +142,23 @@ void draw_event__enemy1() {
   for(int i = 0; i < enemies_list->size; i++) {
     ENEMY1 *enemy = list_get(enemies_list, i);
 
-    float speed = (float)(enemy->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
+    enemy_movement(enemy);
 
-    draw_sprite(enemy2_sprite, sprite_num, enemy->base.x, enemy->base.y);
+    draw_sprite(enemy2_sprite, enemy->sprite_num, enemy->base.x, enemy->base.y, IMAGE_DRAW_MODE_NORMAL);
 
     if (enemy->just_hit) {
       draw_sprite(
         small_expl_sprite,
         0,
-        enemy->base.x + ((enemy2_sprite.width[sprite_num] - small_expl_sprite.width[0]) / 2) + 2,
-        enemy->base.y + (enemy2_sprite.height[sprite_num] / 2) - 3
+        enemy->base.x + ((enemy2_sprite.width[enemy->sprite_num] - small_expl_sprite.width[0]) / 2) + 2,
+        enemy->base.y + (enemy2_sprite.height[enemy->sprite_num] / 2) - 3,
+        IMAGE_DRAW_MODE_NORMAL
       );
 
       if(game_clock_ms - enemy->last_hit_clock > 100) {
         enemy->just_hit = 0;
       }
     }
-
-    enemy->base.y += speed;
   }
 
   // draw explosions

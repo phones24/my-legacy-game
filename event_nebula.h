@@ -24,7 +24,7 @@ void draw_event__nebula(LEVEL_EVENT *event) {
     return;
   }
 
-  draw_sprite(nebula_sprite, cur_evevnt->sprite_num, cur_evevnt->x, cur_evevnt->y);
+  draw_sprite(nebula_sprite, cur_evevnt->sprite_num, cur_evevnt->x, cur_evevnt->y, IMAGE_DRAW_MODE_NORMAL);
 
   cur_evevnt->y += 0.1;
 }

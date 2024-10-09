@@ -49,7 +49,7 @@ void draw_event__planet() {
 
     float speed = (float)(planet->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
 
-    draw_sprite(planets_sprite, planet->sprite_num, planet->x, planet->y);
+    draw_sprite(planets_sprite, planet->sprite_num, planet->x, planet->y, IMAGE_DRAW_MODE_NORMAL);
 
     planet->y += speed;
   }

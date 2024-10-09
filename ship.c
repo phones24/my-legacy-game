@@ -39,7 +39,7 @@ void set_invincible() {
   invincible_clock = game_clock_ms;
 }
 
-void init_ship() {
+void reset_ship() {
   ship.x = 140;
   ship.y = 100;
   ship.x_speed = 0;
@@ -48,6 +48,11 @@ void init_ship() {
   ship.sprite_num = 2;
   ship.exploding = 0;
   ship.visible = 1;
+}
+
+void init_ship() {
+  reset_ship();
+
   ship.lives = 3;
 
   set_invincible();
@@ -55,7 +60,9 @@ void init_ship() {
 }
 
 void revive_ship() {
-  init_ship();
+  reset_ship();
+  set_invincible();
+  init_projectile();
 
   ship.lives--;
 
@@ -167,7 +174,7 @@ void draw_ship_projectile() {
       continue;
     }
 
-    draw_sprite(ship_prj_sprite, projectile_sprite_num, prj->x, prj->y);
+    draw_sprite(ship_prj_sprite, projectile_sprite_num, prj->x, prj->y, IMAGE_DRAW_MODE_NORMAL);
 
     prj->y -= speed;
   }
@@ -211,7 +218,8 @@ void draw_ship_explosion() {
     ship_expl_sprite,
     ship_expl_sprite_num,
     ship.x + (ship_sprite.width[ship.sprite_num] - ship_expl_sprite.width[ship_expl_sprite_num]) / 2,
-    ship.y + (ship_sprite.height[ship.sprite_num] - ship_expl_sprite.height[ship_expl_sprite_num]) / 2
+    ship.y + (ship_sprite.height[ship.sprite_num] - ship_expl_sprite.height[ship_expl_sprite_num]) / 2,
+    IMAGE_DRAW_MODE_NORMAL
   );
 
   if(game_clock_ms - last_exp_frame_clock > 100) {
@@ -343,7 +351,7 @@ void draw_ship() {
   }
 
   // draw ship
-  draw_sprite(ship_sprite, ship.sprite_num, ship.x, ship.y);
+  draw_sprite(ship_sprite, ship.sprite_num, ship.x, ship.y, IMAGE_DRAW_MODE_NORMAL);
 }
 
 

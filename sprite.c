@@ -68,10 +68,10 @@ void clear_sprite(SPRITE3 sprite)
   }
 }
 
-void draw_sprite(SPRITE3 sprite, int num, int pos_x, int pos_y) {
+void draw_sprite(SPRITE3 sprite, int num, int pos_x, int pos_y, IMAGE_DRAW_MODE mode) {
   if (sprite.data[num] == NULL) {
     return;
   }
 
-  draw_image(sprite.data[num], sprite.width[num], sprite.height[num], pos_x, pos_y);
+  draw_image(sprite.data[num], sprite.width[num], sprite.height[num], pos_x, pos_y, mode);
 }

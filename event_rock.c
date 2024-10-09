@@ -87,14 +87,15 @@ void draw_event__rock() {
 
     float speed = (float)(rock->speed * delta_frame_time) / (float)TICKS_PER_SECOND;
 
-    draw_sprite(rock_sprite, rock->sprite_num, rock->base.x, rock->base.y);
+    draw_sprite(rock_sprite, rock->sprite_num, rock->base.x, rock->base.y, IMAGE_DRAW_MODE_NORMAL);
 
     if (rock->just_hit) {
       draw_sprite(
         small_expl_sprite,
         0,
         rock->base.x + ((rock_sprite.width[rock->sprite_num] - small_expl_sprite.width[0]) / 2),
-        rock->base.y + rock_sprite.height[rock->sprite_num] - small_expl_sprite.height[0] - 2
+        rock->base.y + rock_sprite.height[rock->sprite_num] - small_expl_sprite.height[0] - 2,
+        IMAGE_DRAW_MODE_NORMAL
       );
 
       if(game_clock_ms - rock->last_hit_clock > 100) {
