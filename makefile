@@ -15,6 +15,7 @@ SOURCES = &
     collision.c &
     keyboard.c &
     event_enemy1.c &
+	event_enemy2.c &
     ship.c &
     sprite.c &
     all_sprites.c &
