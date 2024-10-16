@@ -9,6 +9,7 @@ SPRITE3 enemy2_sprite;
 SPRITE3 enemy_expl_sprite;
 SPRITE3 small_expl_sprite;
 SPRITE3 rock_sprite;
+SPRITE3 en2_prj;
 
 void load_sprites() {
   ship_sprite = load_sprite("ship3");
@@ -20,6 +21,7 @@ void load_sprites() {
   enemy_expl_sprite = load_sprite("en1expl");
   small_expl_sprite = load_sprite("smexpl");
   rock_sprite = load_sprite("rock3");
+  en2_prj = load_sprite("en2_prj");
 }
 
 void free_sprites() {
@@ -32,4 +34,5 @@ void free_sprites() {
   clear_sprite(enemy_expl_sprite);
   clear_sprite(small_expl_sprite);
   clear_sprite(rock_sprite);
+  clear_sprite(en2_prj);
 }

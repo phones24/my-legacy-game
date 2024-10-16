@@ -13,6 +13,7 @@ typedef struct {
   int energy;
   int sprite_num;
   int just_hit;
+  int shot_count;
   unsigned long last_hit_clock;
 } ENEMY2;
 

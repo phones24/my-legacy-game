@@ -11,7 +11,7 @@
 #include "event_rock.h"
 #include "collision.h"
 
-#define MAX_ROCKS 10
+#define MAX_ROCKS 5
 #define EVENT_PERIOD 50000
 #define ROCK_FRAMES 6
 
@@ -40,8 +40,8 @@ void create_rock() {
   rock->base.hit_box_x2 = rock->base.width - 2;
   rock->base.hit_box_y2 = rock->base.height - 2;
   rock->sprite_num = 0;
-  rock->speed = 4;
-  rock->energy = 10;
+  rock->speed = 3;
+  rock->energy = 6;
   rock->last_frame_clock = 0;
 
   list_add(rocks, rock);

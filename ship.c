@@ -119,7 +119,7 @@ int check_projectile_collision(int x, int y, int width, int height) {
 
     if (x + width > object->base.x + object->base.hit_box_x1 &&
         x < object->base.x + object->base.hit_box_x2 &&
-        y + height > object->base.y + object->base.hit_box_y1 &&
+        y + height - 10 > object->base.y + object->base.hit_box_y1 && // 10 is aprox height of ship engine exhaust
         y < object->base.y + object->base.hit_box_y2
     ) {
       object->base.on_hit(object);

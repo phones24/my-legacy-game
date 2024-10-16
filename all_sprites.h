@@ -11,6 +11,7 @@ extern SPRITE3 enemy2_sprite;
 extern SPRITE3 enemy_expl_sprite;
 extern SPRITE3 small_expl_sprite;
 extern SPRITE3 rock_sprite;
+extern SPRITE3 en2_prj;
 
 void load_sprites();
 void free_sprites();

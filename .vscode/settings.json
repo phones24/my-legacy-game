@@ -45,6 +45,7 @@
         "type_traits": "c",
         "tuple": "c",
         "sound.h": "c",
-        "midasdll.h": "c"
+        "midasdll.h": "c",
+        "event_planets.h": "c"
     }
 }

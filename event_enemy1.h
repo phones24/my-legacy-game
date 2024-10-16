@@ -17,7 +17,6 @@ typedef struct {
 } ENEMY1;
 
 void init_event__enemy1();
-void on_hit(void *object);
 void start_event__enemy1(LEVEL_EVENT *event);
 void draw_event__enemy1();
 void clear_event__enemy1();

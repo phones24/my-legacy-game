@@ -44,6 +44,11 @@ void init_event__enemy1() {
 void create_enemy1() {
   ENEMY1 *enemy = (ENEMY1 *)malloc(sizeof(ENEMY1));
 
+  if (enemy == NULL) {
+    fprintf(stderr, "Cannot allocate memory for enemy1");
+    exit(1);
+  }
+
   enemy->sprite_num = 0;
   enemy->base.x = 10 + (rand() % (SCREEN_WIDTH - 50));
   enemy->base.y = 0.0f - enemy1_sprite.height[enemy->sprite_num];
@@ -53,7 +58,7 @@ void create_enemy1() {
   enemy->base.hit_box_y1 = 2;
   enemy->base.hit_box_x2 = enemy->base.width - 2;
   enemy->base.hit_box_y2 = enemy->base.height - 2;
-  enemy->speed = 3;
+  enemy->speed = 4;
   enemy->energy = 2;
 
   list_add(enemies_list, enemy);
@@ -65,6 +70,11 @@ void create_enemy1() {
 
 static void create_explosion(int x, int y) {
   EXPLOSION *explosion = malloc(sizeof(EXPLOSION));
+
+  if (explosion == NULL) {
+    fprintf(stderr, "Cannot allocate memory for explosion");
+    exit(1);
+  }
 
   explosion->x = x + (enemy1_sprite.width[0] - enemy_expl_sprite.width[0]) / 2;
   explosion->y = y;
