@@ -46,7 +46,7 @@ void create_rock() {
 
   list_add(rocks, rock);
 
-  add_object_to_collision_list((COL_OBJECT *)rock, &on_hit);
+  add_object_to_collision_list((COL_OBJECT *)rock, &on_hit, COLLISION_MODE_ALL);
 
   last_created_rock_clock = game_clock_ms;
 }

@@ -25,7 +25,8 @@ SOURCES = &
     graphics.c &
     font.c &
     sound.c &
-	event_rock.c
+	event_rock.c &
+	titlescr.c
 
 EXE = game.exe
 

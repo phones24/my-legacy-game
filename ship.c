@@ -113,14 +113,20 @@ void shot_projectile() {
   }
 }
 
-int check_projectile_collision(int x, int y, int width, int height) {
+int check_projectile_collision(PROJECTILE *prj) {
+  int x = prj->x,
+    y = prj->y,
+    width = projectile_width,
+    height = projectile_height;
+
   for(int i = 0; i < collision_objects->size; i++) {
     COL_OBJECT *object = list_get(collision_objects, i);
 
     if (x + width > object->base.x + object->base.hit_box_x1 &&
         x < object->base.x + object->base.hit_box_x2 &&
         y + height - 10 > object->base.y + object->base.hit_box_y1 && // 10 is aprox height of ship engine exhaust
-        y < object->base.y + object->base.hit_box_y2
+        y < object->base.y + object->base.hit_box_y2 &&
+        object->base.collision_mode == COLLISION_MODE_ALL
     ) {
       object->base.on_hit(object);
       return 1;
@@ -130,7 +136,12 @@ int check_projectile_collision(int x, int y, int width, int height) {
   return 0;
 }
 
-int check_ship_collision(int x, int y, int width, int height) {
+int check_ship_collision() {
+  int x = ship.x,
+    y = ship.y,
+    width = ship_sprite.width[ship.sprite_num],
+    height = ship_sprite.height[ship.sprite_num];
+
   for(int i = 0; i < collision_objects->size; i++) {
     COL_OBJECT *object = list_get(collision_objects, i);
 
@@ -151,11 +162,6 @@ void draw_ship_projectile() {
   shot_projectile();
 
   int speed = (PROJECTILE_SPEED * delta_frame_time) / TICKS_PER_SECOND;
-  // static int projectile_sprite_num = 0;
-
-  // if(game_clock_ms % 20 == 0) {
-  //   projectile_sprite_num = projectile_sprite_num == 0 ? 1 : 0;
-  // }
 
   for (int i = 0; i < PROJECTILES_NUM; i++) {
     PROJECTILE *prj = &projectile[i];
@@ -169,7 +175,8 @@ void draw_ship_projectile() {
       continue;
     }
 
-    if(check_projectile_collision(prj->x, prj->y, projectile_width, projectile_height)) {
+    // if(check_projectile_collision(prj->x, prj->y, projectile_width, projectile_height)) {
+    if(check_projectile_collision(prj)) {
       prj->visible = 0;
       continue;
     }
@@ -245,7 +252,7 @@ void draw_ship() {
     return;
   }
 
-  if(!ship.exploding && !ship.invincible && check_ship_collision(ship.x, ship.y, ship_sprite.width[ship.sprite_num], ship_sprite.height[ship.sprite_num])) {
+  if(!ship.exploding && !ship.invincible && check_ship_collision()) {
     ship.exploding = 1;
     play_sound(sound_ship_expl, 50);
     return;

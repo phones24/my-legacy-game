@@ -63,7 +63,7 @@ void create_enemy1() {
 
   list_add(enemies_list, enemy);
 
-  add_object_to_collision_list((COL_OBJECT *)enemy, &on_hit);
+  add_object_to_collision_list((COL_OBJECT *)enemy, &on_hit, COLLISION_MODE_ALL);
 
   last_enemy_clock = game_clock_ms;
 }
@@ -182,8 +182,8 @@ void draw_event__enemy1() {
   // draw explosions
   draw_explosions();
 
-  // stop event if there are no enemies and enough time has passed
-  if(game_clock_ms - start_event_clock > EVENT_PERIOD && enemies_list->size == 0) {
+  // stop event if there are no enemies/projectiles and enough time has passed
+  if(game_clock_ms - start_event_clock > EVENT_PERIOD && enemies_list->size == 0 && explosions->size == 0) {
     stop_event(level_event);
   }
 }

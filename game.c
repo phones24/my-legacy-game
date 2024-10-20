@@ -20,6 +20,9 @@
 #include "hud.h"
 #include "collision.h"
 #include "sound.h"
+#include "titlescr.h"
+
+int game_stage = 0; // 0 - intro, 1 - game, 2 - end
 
 // volatile unsigned long begin_frame_ms, delta_frame_ms;
 // int frames_count = 0;
@@ -91,7 +94,7 @@ int main()
   srand(time(NULL));
 
   // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
-  IMAGE image2 = read_bmp("res\\enemy1.bmp");
+  // IMAGE image2 = read_bmp("res\\enemy1.bmp");
   // LEVEL_DATA level_data = load_level_data("res\\level.txt");
 
   // printf("event count: %u\n", level_data.count);
@@ -117,17 +120,14 @@ int main()
   init_stars();
   init_ship();
   init_level();
+  init_title_screen();
 
   set_mode_13h_modex();
   init_palette();
 
-  // int y = 0
   while (1) {
     begin_frame_time = game_clock_ms;
-    // wait_for_vsync();
-
     set_active_page();
-    clear_modex();
 
     // draw_image_rle(image.data, image.data_size, image.width, image.height, 20, 100);
     // draw_image(image2.data, image2.width, image2.height, 20, 20, IMAGE_DRAW_MODE_FLIP_X);
@@ -136,25 +136,38 @@ int main()
     // }
     // draw_line(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % 255);
 
-
-    draw_stars();
-    draw_level();
-    draw_ship();
-    draw_ship_projectile();
-
-    // draw_debug_info();
-    pause();
+    if(game_stage == 0) {
+      draw_title_screen();
+    }
 
 
-    draw_hud();
-    // draw_fps();
+    if(game_stage == 1) {
+      clear_modex();
 
-    set_visible_page();
-    wait_for_vsync();
+      draw_stars();
+      draw_level();
+      draw_ship();
+      draw_ship_projectile();
+
+      // draw_debug_info();
+      pause();
+
+
+      draw_hud();
+      // draw_fps();
+
+    }
+
+    if(game_stage == 0) {
+
+    }
 
     if(keys.escape) {
       break;
     }
+
+    set_visible_page();
+    wait_for_vsync();
 
     delta_frame_time = game_clock_ms - begin_frame_time;
   }
@@ -165,7 +178,7 @@ int main()
 
   // free(image.data);
   // free(image2.data);
-
+  clear_title_screen();
   clear_stars();
   free_sprites();
   clear_level_data();

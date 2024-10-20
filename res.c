@@ -1,6 +1,3 @@
-#ifndef RES_H
-#define RES_H
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -193,4 +190,6 @@ SPRITE_SHEET read_sprite_sheet(const char *filename) {
   return sprite_sheet;
 }
 
-#endif
+void clear_image(IMAGE *image) {
+  free(image->data);
+}

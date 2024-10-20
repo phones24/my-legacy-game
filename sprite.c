@@ -54,7 +54,7 @@ SPRITE3 load_sprite(const char *name)
     sprite.data[i] = NULL;
   }
 
-  free(image.data);
+  clear_image(&image);
 
   return sprite;
 }

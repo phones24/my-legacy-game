@@ -6,44 +6,20 @@
 #include <conio.h>
 
 #include "font.h"
+#include "font3x5.h"
 #include "graphics_def.h"
 #include "graphics.h"
 
 char *video_mem = (char *)0xA0000;
-char *double_buffer;
 
 static unsigned char page = 0;
 static unsigned int video_mem_offset = 0;
-
-void init_double_buffer() {
-  double_buffer = (char *)malloc(SCREEN_SIZE);
-
-  if (double_buffer == NULL) {
-    printf("Memory allocation failed for double buffer\n");
-    exit(1);
-  }
-
-  memset(double_buffer, 0, SCREEN_SIZE);
-}
-
-void free_double_buffer() {
-  free(double_buffer);
-}
 
 void set_mode_03h() {
   union REGS regs;
 
   regs.h.ah = 0x00;
   regs.h.al = 0x03;
-
-  int386(0x10, &regs, &regs);
-}
-
-void set_mode_13h() {
-  union REGS regs;
-
-  regs.h.ah = 0x00;
-  regs.h.al = 0x13;
 
   int386(0x10, &regs, &regs);
 }
@@ -73,55 +49,36 @@ void wait_for_vsync() {
   while (!(inp(0x03DA) & 0x08));
 }
 
-void show_double_buffer() {
-  _asm {
-    push edi
-    push esi
-    push edx
-    mov  edi, video_mem
-    mov  esi, double_buffer
-    mov  ecx, SCREEN_SIZE_DWORDS
-    rep  movsd
-    pop  edx
-    pop  esi
-    pop  edi
-  }
-}
-
-void put_pixel(int x, int y, char color) {
-  double_buffer[((y << 8) + (y << 6)) + x] = color;
-}
-
 void put_pixel_modex(int x, int y, char color) {
   outp(0x3C4, 0x02);
   outp(0x3C5, 1 << (x & 0x3));
 
   _asm {
-      push eax
-      push ebx
-      push ecx
-      push edx
-      push edi
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push edi
 
-      mov eax, y
-      mov edx, 80
-      mul edx
-      mov edx, x
-      shr edx, 2
-      add eax, edx
+    mov eax, y
+    mov edx, 80
+    mul edx
+    mov edx, x
+    shr edx, 2
+    add eax, edx
 
-      add eax, video_mem_offset
+    add eax, video_mem_offset
 
-      mov edi, video_mem
-      mov edx, eax
-      mov al, color
-      mov [edi + edx], al
+    mov edi, video_mem
+    mov edx, eax
+    mov al, color
+    mov [edi + edx], al
 
-      pop edi
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
+    pop edi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
   }
 }
 
@@ -153,19 +110,6 @@ void clear_modex() {
     add  edi, video_mem_offset
     xor  eax, eax
     mov  ecx, SCREEN_SIZE_DIV_4 / 4
-    rep  stosd
-    pop  edx
-    pop  edi
-  }
-}
-
-void clear_double_buffer() {
-  _asm {
-    push edi
-    push edx
-    mov  edi, double_buffer
-    mov  eax, 0
-    mov  ecx, SCREEN_SIZE_DWORDS
     rep  stosd
     pop  edx
     pop  edi
@@ -226,6 +170,36 @@ void draw_string(int x, int y, const char *str, char color) {
     str++;
   }
 }
+
+void draw_char3x5(int x, int y, char ch, char color) {
+  char *glyph = font3x5[ch - ' '];
+
+  for (unsigned int row = 0; row < FONT3x5_HEIGHT; row++) {
+    for (unsigned int col = 0; col < FONT3x5_WIDTH; col++) {
+      char px = glyph[col + row * FONT3x5_WIDTH];
+      if (px == '#') {
+        put_pixel_modex(x + col, y + row, color);
+      }
+    }
+  }
+}
+
+void draw_string3x5(int x, int y, const char *str, char color) {
+  while (*str) {
+    if (x + FONT3x5_WIDTH >= SCREEN_WIDTH) {
+      x = 0;
+      y += FONT3x5_HEIGHT;
+
+      if (y + FONT3x5_HEIGHT > SCREEN_HEIGHT) {
+        return;
+      }
+    }
+    draw_char3x5(x, y, *str, color);
+    x += FONT3x5_WIDTH + 1;
+    str++;
+  }
+}
+
 
 void draw_image(char * data, int width, int height, int pos_x, int pos_y, IMAGE_DRAW_MODE mode) {
   if(pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {

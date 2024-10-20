@@ -12,7 +12,7 @@
 #include "sound.h"
 #include "ship.h"
 
-#define EVENT_PERIOD 50000
+#define EVENT_PERIOD 10000
 #define MAX_ENEMIES 2
 
 typedef struct {
@@ -69,11 +69,15 @@ static void create_projectile(ENEMY2 *enemy) {
   projectile->base.y = enemy->base.y + enemy->base.height / 2;
   projectile->base.width = en2_prj.width[0];
   projectile->base.height = en2_prj.height[0];
+  projectile->base.hit_box_x1 = 2;
+  projectile->base.hit_box_y1 = 2;
+  projectile->base.hit_box_x2 = projectile->base.width - 2;
+  projectile->base.hit_box_y2 = projectile->base.height - 2;
   projectile->sprite_num = 0;
   projectile->last_frame_clock = game_clock_ms;
 
   list_add(projectiles, projectile);
-  add_object_to_collision_list((COL_OBJECT *)projectile, &on_projectile_hit);
+  add_object_to_collision_list((COL_OBJECT *)projectile, &on_projectile_hit, COLLISION_MODE_PROJECTILES);
 }
 
 static void shot_projectile(ENEMY2 *enemy) {
@@ -115,7 +119,7 @@ void create_enemy2() {
   last_direction = last_direction > 0 ? -1 : 1;
 
   list_add(enemies_list, enemy);
-  add_object_to_collision_list((COL_OBJECT *)enemy, &on_hit);
+  add_object_to_collision_list((COL_OBJECT *)enemy, &on_hit, COLLISION_MODE_ALL);
 
   last_enemy_clock = game_clock_ms;
 }
@@ -168,7 +172,7 @@ static void draw_projectiles() {
   for(int i = 0; i < projectiles->size; i++) {
     PROJECTILE *projectile = list_get(projectiles, i);
 
-    if (projectile->y > SCREEN_HEIGHT || projectile->x > SCREEN_WIDTH) {
+    if (projectile->base.y > SCREEN_HEIGHT || projectile->base.x > SCREEN_WIDTH) {
       list_remove(projectiles, i);
       continue;
     }
