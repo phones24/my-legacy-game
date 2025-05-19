@@ -1,14 +1,14 @@
+#include <conio.h>
+#include <dos.h>
+#include <malloc.h>
+#include <mem.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dos.h>
-#include <mem.h>
-#include <malloc.h>
-#include <conio.h>
 
 #include "font.h"
 #include "font3x5.h"
-#include "graphics_def.h"
 #include "graphics.h"
+#include "graphics_def.h"
 
 char *video_mem = (char *)0xA0000;
 
@@ -82,8 +82,14 @@ void put_pixel_modex(int x, int y, char color) {
   }
 }
 
-void set_visible_page()
-{
+char get_pixel_modex(int x, int y) {
+  outp(0x3ce, 0x04);
+  outp(0x3cf, x & 0x3);
+
+  return video_mem[video_mem_offset + (SCREEN_WIDTH / 4) * y + (x >> 2)];
+}
+
+void set_visible_page() {
   unsigned int start_address = page * SCREEN_SIZE_DIV_4;
 
   outp(0x3d4, 0x0C);
@@ -94,10 +100,7 @@ void set_visible_page()
   page = page == 0 ? 1 : 0;
 }
 
-void set_active_page()
-{
-  video_mem_offset = page * SCREEN_SIZE_DIV_4;
-}
+void set_active_page() { video_mem_offset = page * SCREEN_SIZE_DIV_4; }
 
 void clear_modex() {
   outp(0x3C4, 0x02);
@@ -200,13 +203,13 @@ void draw_string3x5(int x, int y, const char *str, char color) {
   }
 }
 
-
-void draw_image(char * data, int width, int height, int pos_x, int pos_y, IMAGE_DRAW_MODE mode) {
-  if(pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
+void draw_image(char *data, int width, int height, int pos_x, int pos_y,
+                IMAGE_DRAW_MODE mode) {
+  if (pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
     return;
   }
 
-  if(pos_x + width < 0 || pos_x >= SCREEN_WIDTH) {
+  if (pos_x + width < 0 || pos_x >= SCREEN_WIDTH) {
     return;
   }
 
@@ -217,28 +220,55 @@ void draw_image(char * data, int width, int height, int pos_x, int pos_y, IMAGE_
   for (int y = 0; y < height; y++) {
     final_y++;
 
-    if(final_y < 0 || final_y >= SCREEN_HEIGHT) {
+    if (final_y < 0 || final_y >= SCREEN_HEIGHT) {
       continue;
     }
 
-    char* line = &data[y * width];
-    for(int x = 0; x < width; x++) {
+    char *line = &data[y * width];
+    for (int x = 0; x < width; x++) {
       color = *line++;
-      final_x = mode == IMAGE_DRAW_MODE_FLIP_X  ? pos_x + width - x : pos_x + x;
+      final_x = mode == IMAGE_DRAW_MODE_FLIP_X ? pos_x + width - x : pos_x + x;
 
-      if (color != TRANSPARENT_COLOR && final_x >= 0 && final_x < SCREEN_WIDTH) {
+      if (color != TRANSPARENT_COLOR && final_x >= 0 &&
+          final_x < SCREEN_WIDTH) {
         put_pixel_modex(final_x, final_y, color);
       }
     }
   }
 }
 
-void draw_image_rle(const char * data, unsigned long data_size, int width, int height, int pos_x, int pos_y) {
-  if(pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
+void draw_image_full_screen(IMAGE image) {
+  outp(0x3C4, 0x02);
+
+  for (int p = 0; p < 4; p++) {
+    outp(0x3C5, 1 << (p & 3));
+
+    char *src = image.data_planar + SCREEN_SIZE_DIV_4 * p;
+    char *dest = video_mem + video_mem_offset;
+    int count = SCREEN_SIZE_DIV_4;
+
+    _asm {
+        mov esi, src
+        mov edi, dest
+        mov ecx, count
+
+        shr ecx, 2
+        rep movsd
+
+        mov ecx, count
+        and ecx, 3
+        rep movsb
+    }
+  }
+}
+
+void draw_image_rle(const char *data, unsigned long data_size, int width,
+                    int height, int pos_x, int pos_y) {
+  if (pos_y + height < 0 || pos_y >= SCREEN_HEIGHT) {
     return;
   }
 
-  if(pos_x + width < 0 || pos_x >= SCREEN_WIDTH) {
+  if (pos_x + width < 0 || pos_x >= SCREEN_WIDTH) {
     return;
   }
 
@@ -285,8 +315,8 @@ void draw_image_rle(const char * data, unsigned long data_size, int width, int h
       draw_x += to_draw;
 
       if (draw_x >= pos_x + width) {
-          draw_x = pos_x;
-          draw_y++;
+        draw_x = pos_x;
+        draw_y++;
       }
 
       if (draw_y >= pos_y + height) {
@@ -295,5 +325,3 @@ void draw_image_rle(const char * data, unsigned long data_size, int width, int h
     }
   }
 }
-
-

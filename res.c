@@ -1,11 +1,11 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #include "graphics_def.h"
-#include "sprite_sheet.h"
 #include "res.h"
+#include "sprite_sheet.h"
 
 #pragma pack(1)
 
@@ -46,8 +46,7 @@ typedef struct {
   unsigned char filler[58];
 } PCX_HEADER;
 
-void strip_newline(char *str)
-{
+void strip_newline(char *str) {
   int len = strlen(str);
 
   if (len > 0 && (str[len - 1] == '\n' || str[len - 1] == '\r')) {
@@ -59,11 +58,26 @@ void strip_newline(char *str)
   }
 }
 
-IMAGE read_bmp(const char *filename)
-{
+void convert_to_planar(char *linear, char *planar, int width, int height) {
+  memset(planar, 0, width * height);
+
+  int real_width = width / 4;
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x += 4) {
+      for (int plane = 0; plane < 4; plane++) {
+        planar[plane * real_width * height + y * real_width + (x / 4)] =
+            linear[y * width + x + plane];
+      }
+    }
+  }
+}
+
+IMAGE read_bmp(const char *filename) {
   FILE *file = fopen(filename, "rb");
   if (!file) {
-    fprintf(stderr, "Error opening BMP file %s, err: %s\n", filename, strerror(errno));
+    fprintf(stderr, "Error opening BMP file %s, err: %s\n", filename,
+            strerror(errno));
     exit(1);
   }
 
@@ -81,7 +95,8 @@ IMAGE read_bmp(const char *filename)
   }
 
   if (image_header.biBitCount != 8) {
-    fprintf(stderr, "Only 8-bit BMP files are supported, biBitCount: %x\n", image_header.biBitCount);
+    fprintf(stderr, "Only 8-bit BMP files are supported, biBitCount: %x\n",
+            image_header.biBitCount);
     fclose(file);
     exit(1);
   }
@@ -89,9 +104,16 @@ IMAGE read_bmp(const char *filename)
   image.width = image_header.biWidth;
   image.height = image_header.biHeight;
   image.data = malloc(image_header.biWidth * image_header.biHeight + 1);
+  image.data_planar = malloc(image_header.biWidth * image_header.biHeight + 1);
 
-  if(image.data == NULL) {
+  if (image.data == NULL) {
     printf("Error: Could not allocate memory for image data: %s\n", filename);
+    exit(1);
+  }
+
+  if (image.data_planar == NULL) {
+    printf("Error: Could not allocate memory for image planardata: %s\n",
+           filename);
     exit(1);
   }
 
@@ -101,19 +123,20 @@ IMAGE read_bmp(const char *filename)
   fseek(file, file_header.bfOffBits, SEEK_SET);
 
   for (int y = image.height - 1; y >= 0; y--) {
-    char* row = image.data + y * image.width * bytes_per_pixel;
+    char *row = image.data + y * image.width * bytes_per_pixel;
     fread(row, 1, row_size, file);
   }
+
+  convert_to_planar(image.data, image.data_planar, image.width, image.height);
 
   fclose(file);
 
   return image;
 }
 
-IMAGE_RLE read_pcx(const char* filename) {
+IMAGE_RLE read_pcx(const char *filename) {
   FILE *file = fopen(filename, "rb");
-  if (!file)
-  {
+  if (!file) {
     fprintf(stderr, "Error opening PCX file %s\n", filename);
     exit(1);
   }
@@ -129,7 +152,7 @@ IMAGE_RLE read_pcx(const char* filename) {
   fseek(file, 0, SEEK_END);
 
   long file_size = ftell(file);
-  if(file_size < 0) {
+  if (file_size < 0) {
     printf("Error: Could not get file size: %s\n", filename);
     exit(1);
   }
@@ -138,7 +161,7 @@ IMAGE_RLE read_pcx(const char* filename) {
   image.data_size = file_size - sizeof(PCX_HEADER);
   image.data = (char *)malloc(image.data_size);
 
-  if(image.data == NULL) {
+  if (image.data == NULL) {
     printf("Error: Could not allocate memory for image data\n");
     exit(1);
   }
@@ -159,13 +182,13 @@ SPRITE_SHEET read_sprite_sheet(const char *filename) {
 
   SPRITE_SHEET sprite_sheet;
 
-  if(fscanf(file, "%u", &sprite_sheet.count) != 1) {
+  if (fscanf(file, "%u", &sprite_sheet.count) != 1) {
     printf("Error: Could not read sprite sheet count\n");
     fclose(file);
     exit(1);
   }
 
-  if(sprite_sheet.count == 0 || sprite_sheet.count > 20) {
+  if (sprite_sheet.count == 0 || sprite_sheet.count > 20) {
     printf("Error: Invalid sprite sheet count\n");
     fclose(file);
     exit(1);
@@ -175,7 +198,8 @@ SPRITE_SHEET read_sprite_sheet(const char *filename) {
   for (int i = 0; i < sprite_sheet.count; i++) {
     SPRITE_DEF sprite_def;
 
-    if(fscanf(file, "%u %u %u %u", &sprite_def.x0, &sprite_def.y0, &sprite_def.x1, &sprite_def.y1) != 4) {
+    if (fscanf(file, "%u %u %u %u", &sprite_def.x0, &sprite_def.y0,
+               &sprite_def.x1, &sprite_def.y1) != 4) {
       printf("Error: Could not read sprite definition\n");
       fclose(file);
       exit(1);
@@ -192,4 +216,7 @@ SPRITE_SHEET read_sprite_sheet(const char *filename) {
 
 void clear_image(IMAGE *image) {
   free(image->data);
+  free(image->data_planar);
 }
+
+void clear_image_rle(IMAGE_RLE *image) { free(image->data); }

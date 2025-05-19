@@ -6,15 +6,14 @@
 #define KEYBOARD_IRQ 0x09
 
 volatile KEYS keys;
-volatile char all_keys[0xff] = { 0 };
+volatile char all_keys[0xff] = {0};
 
 void interrupt (*old_keyboard_isr)(void);
 
-void interrupt new_keyboard_isr()
-{
+void interrupt new_keyboard_isr() {
   char scan_code = inp(0x60);
 
-  if(scan_code & 128) {
+  if (scan_code & 128) {
     all_keys[scan_code & 127] = 0;
   } else {
     all_keys[scan_code] = 1;
@@ -27,14 +26,14 @@ void interrupt new_keyboard_isr()
   keys.left = all_keys[0x4B];
   keys.right = all_keys[0x4D];
   keys.escape = all_keys[0x01];
+  keys.enter = all_keys[0x1C];
 
   outp(0x20, 0x20);
 
   (*old_keyboard_isr)();
 }
 
-void init_keyboard()
-{
+void init_keyboard() {
   old_keyboard_isr = _dos_getvect(KEYBOARD_IRQ);
   _dos_setvect(KEYBOARD_IRQ, new_keyboard_isr);
 
@@ -46,7 +45,4 @@ void init_keyboard()
   keys.space = 0;
 }
 
-void restore_keyboard()
-{
-  _dos_setvect(KEYBOARD_IRQ, old_keyboard_isr);
-}
+void restore_keyboard() { _dos_setvect(KEYBOARD_IRQ, old_keyboard_isr); }

@@ -1,59 +1,54 @@
+#include <conio.h>
+#include <dos.h>
+#include <malloc.h>
+#include <mem.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dos.h>
-#include <mem.h>
-#include <conio.h>
-#include <math.h>
-#include <malloc.h>
 #include <time.h>
 
-#include "timer.h"
-#include "graphics_def.h"
-#include "keyboard.h"
-#include "graphics.h"
-#include "res.h"
-#include "palette.h"
 #include "all_sprites.h"
-#include "level.h"
-#include "stars.h"
-#include "ship.h"
-#include "hud.h"
 #include "collision.h"
+#include "graphics.h"
+#include "graphics_def.h"
+#include "hud.h"
+#include "keyboard.h"
+#include "level.h"
+#include "palette.h"
+#include "ship.h"
 #include "sound.h"
+#include "stars.h"
+#include "timer.h"
 #include "titlescr.h"
 
+volatile unsigned long begin_frame_ms, delta_frame_ms;
+int frames_count = 0;
+char fps[10];
 int game_stage = 0; // 0 - intro, 1 - game, 2 - end
 
-// volatile unsigned long begin_frame_ms, delta_frame_ms;
-// int frames_count = 0;
-// char fps[10];
+void draw_fps() {
+  if (frames_count == 0) {
+    begin_frame_ms = game_clock_ms;
+  }
 
-// void draw_fps()
-// {
-//   if (frames_count == 0) {
-//     begin_frame_ms = game_clock_ms;
-//   }
+  if (game_clock_ms - begin_frame_ms > 1000) {
+    sprintf(fps, "fps: %i", frames_count);
+    frames_count = 0;
+  } else {
+    frames_count++;
+  }
 
-//   if (game_clock_ms - begin_frame_ms > 1000)
-//   {
-//     sprintf(fps, "fps: %i", frames_count);
-//     frames_count = 0;
-//   } else {
-//     frames_count++;
-//   }
-
-//   draw_string(SCREEN_WIDTH - 80, 4, fps, 3);
-// }
+  draw_string3x5(SCREEN_WIDTH - 30, 4, fps, 3);
+}
 
 void pause() {
-  if(keys.p) {
+  if (keys.p) {
     on_pause = 1;
   }
 
-  while(on_pause) {
+  while (on_pause) {
     wait_for_vsync();
 
-    if(keys.p) {
+    if (keys.p) {
       on_pause = 0;
       break;
     }
@@ -81,7 +76,6 @@ void draw_debug_info() {
   draw_string(2, 16, str, 3);
   // sprintf(str, "a: %d", game_clock_ms % 1000);
   // draw_string(2, 24, str, 3);
-
 }
 
 void exit_handler() {
@@ -89,25 +83,8 @@ void exit_handler() {
   // restore_timer();
 }
 
-int main()
-{
+int main() {
   srand(time(NULL));
-
-  // IMAGE_RLE image = read_pcx("res\\enemy1.pcx");
-  // IMAGE image2 = read_bmp("res\\enemy1.bmp");
-  // LEVEL_DATA level_data = load_level_data("res\\level.txt");
-
-  // printf("event count: %u\n", level_data.count);
-
-  // for (int i = 0; i < level_data.count; i++) {
-  //   LEVEL_EVENT *event = &level_data.events[i];
-  //   printf("event: %d, clock: %lu\n", event->type, event->clock);
-  //   if(event->type == EVENT_PLANET) {
-  //     LEVEL_EVENT__PLANET *planet = (LEVEL_EVENT__PLANET *)event->event_data;
-  //     printf("\tplanet: %d, %d\n", planet->sprite_num, planet->x);
-  //   }
-  // }
-
 
   init_keyboard();
   // init_timer();
@@ -129,19 +106,12 @@ int main()
     begin_frame_time = game_clock_ms;
     set_active_page();
 
-    // draw_image_rle(image.data, image.data_size, image.width, image.height, 20, 100);
-    // draw_image(image2.data, image2.width, image2.height, 20, 20, IMAGE_DRAW_MODE_FLIP_X);
-    // for(int i = 0; i <= 200; i+=10) {
-    // draw_line(0, i, 200, i, 200);
-    // }
-    // draw_line(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % 255);
-
-    if(game_stage == 0) {
+    if (game_stage == 0) {
+      clear_modex();
       draw_title_screen();
     }
 
-
-    if(game_stage == 1) {
+    if (game_stage == 1) {
       clear_modex();
 
       draw_stars();
@@ -152,20 +122,19 @@ int main()
       // draw_debug_info();
       pause();
 
-
       draw_hud();
-      // draw_fps();
-
     }
 
-    if(game_stage == 0) {
-
+    if (game_stage == 0 && keys.enter) {
+      // exit_title_screen();
+      game_stage = 1;
     }
 
-    if(keys.escape) {
+    if (keys.escape) {
       break;
     }
 
+    draw_fps();
     set_visible_page();
     wait_for_vsync();
 

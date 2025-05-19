@@ -12,6 +12,7 @@ typedef struct {
   unsigned short width;
   unsigned short height;
   char *data;
+  char *data_planar;
 } IMAGE;
 
 typedef struct {
